@@ -1,3 +1,4 @@
+import numpy as np
 from utils import *
 
 class Move:
@@ -58,8 +59,17 @@ class Move:
 				self.infrastructure[measure] = value
 
 
+    '''
+    given by monte carlo - gets the state resulting from this move being made by sampling a distribution
+    '''
+    def getPossibleState(self, curState):
+        # TODO:
+        pass
 
+    def compare(self, other):
+        return np.sum([abs(self.pmesiiVars[i] - other.pmesiiVars[i]) for i in range(0, len(self.pmesiiVars))])
 
+'''
 move = Move({"PDRLEG": 4}, {"Oil Refineries": 5})
 print(move.getMeasure("Oil Refineries", category = "i"))
 print("Updating Measure")
@@ -67,7 +77,4 @@ move.updateMeasure("Oil Refineries", 12, category = "i")
 print(move.getMeasure("Oil Refineries", category = "i"))
 test = "Hell OOOOOO World"
 print(formatMeasure(test))
-
-
-
-
+'''
