@@ -2,22 +2,23 @@ from MST import MST
 
 
 class Actor:
-    def __init__(self, poles, curState, desiredState, maxTime, error, history, criticalState):
+    def __init__(self, poles, currentState, desiredState, maxTime, error, history, criticalState):
         self.poles = poles
-        self.curState = curState
+        self.currentState = currentState
         self.desiredState = desiredState
         self.maxTime = maxTime
         self.error = error
         self.history = history
         self.memory = []
         self.criticalState = criticalState
+        self.successfulMoves = []
 
     '''
     orders possible moves based on ideal move (k-means)
     record how far away each move is from the ideal move
-    Some moves may be cut off here based on the particular/holistic and routine/creative poles.
-    Other may moves will be added based on the primacy/recency pole.
+    The poles will act here for the first time.
     The order these poles will act will depend on their weights.
+    To see specific actions of poles see the actOnList method of the poles.
     returns list of possible moves, ordered.
     '''
 
@@ -53,21 +54,33 @@ class Actor:
         return moves
 
     '''
+    check if the previous move was successful.
+    successful means that the move made the state of the actor closer to the desired state.
+    the more negative the value returned is, the more successful a move was. 0 means move didn't change the state. Positive means the move moved the current state further from the desired state.
+    negative means the move moved the current state closer to the desired state than before
+    '''
+    def howSuccessfulWasMove(self):
+        return self.currentState - self.memory[0].desiredState > self.memory[0].currentState - self.memory[0].desiredState
+
+    '''
     chooses the move to be made by this actor
     appends the move to history and to memory of the actor.
     returns the Move that is chosen by this actor
     '''
 
     def makeDecision(self):
+        if self.howSuccessfulWasMove() < 0:
+            self.memory[0].success = self.howSuccessfulWasMove()
+            self.successfulMoves.append(self.memory[0].move)
         # TODO
         #check if resources are critically low in the current state
-        for i in range(0, len(self.curState)):
-            if self.curState[i] < self.criticalState[i]:
+        for i in range(0, len(self.currentState)):
+            if self.currentState[i] < self.criticalState[i]:
                 self.trigger(self.criticalState[i].name, self.criticalState[i].value)
 
         orderedMoves = self.orientation()
         cutResources = self.cutByResources(orderedMoves)
-        mst = MST(self.curState, self.desiredState, cutResources, self.maxTime)
+        mst = MST(self.currentState, self.desiredState, cutResources, self.maxTime)
         mst = self.pH(mst)
         # check how many moves left in mst.
         moves = mst.getMoves()
@@ -75,7 +88,7 @@ class Actor:
             # if one left, then that is the move to be made
             # else chose move at random. (actor's PH decided that these moves are equivalent, so either is acceptable).
 
-        event = Event(self.curState, result)
+        event = Event(self.currentState,self.desiredState, result)
         self.addToMemory(result)
         return result
 
@@ -86,7 +99,7 @@ class Actor:
 
     def applyPossibleMove(self, move):
         # TODO
-        state = self.curState
+        state = self.currentState
         for i in range(0, len(move.pmesiiVars)):
             state.pmesiiVars[i] += move.pmesiiVars[i]
         return state
@@ -97,31 +110,21 @@ class Actor:
     '''
 
     def addToMemory(self, move):
-        # TODO: this has to be different, memory is not the same as history. Figure out how to tell something is more important to an actor than something elses
-        event = Event(self.curState, move)
-        self.memory.append(event)
+        self.memory.append(Event(self.currentState, move))
 
     '''
-    The rest of the poles will act here. These are Primacy/Recency, Emotion, Urgency, Risk, Rationality. The order in which these will act depends on the weights of the poles.
+   The poles will act again here, on the MST. The order in which these will act depends on the weights of the poles.
 
     '''
 
     def pH(self, mst):
         poles = self.poles
 
-        #TODO: sort poles based on weight
+        #sort poles based on weight
         for pole in poles:
             mst = pole.actOnMST(mst, self)
         return mst
 
-    def setError(self, error):
-        self.errorBound = error
-
-    def getHistory(self):
-        return self.history
-
-    def getMemory(self):
-        return self.memory
     '''
     trigger a move based on critically low values. temporarily set the desired state to one that will fix the currently lacking resource. Maybe we can make a stack of states that an actor needs to achieve
     '''
@@ -134,8 +137,9 @@ class Actor:
 This class represents an event in an actor's history/memory. It records the state that the actor was in, and the move that was made from that state
 '''
 class Event:
-    def __init__(self, state, move):
-        self.state = state
+    def __init__(self, currentState, desiredState, move):
+        self.currentState = currentState
+        self.desiredState = desiredState
         self.move = move
 
     '''

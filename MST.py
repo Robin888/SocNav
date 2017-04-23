@@ -1,39 +1,34 @@
 import networkx as nx
 
-
 class MST:
-    def __init__(self, curState, desiredState, moves, maxTime):
-        self.curState = curState
+    def __init__(self, currentState, desiredState, moves, maxTime):
+        self.currentState = currentState
         self.desiredState = desiredState
         self.graph = nx.Graph()
         self.maxTime = maxTime
         self.possibleMoves = moves
-        self.tree = self.generateTree(self.curState, 0)
+        self.tree = self.generateTree(self.currentState, 0)
 
     '''
     build the tree
     parentNode = the current state of the system, which will be the root node of the tree.
     curTime - the amount of time ticks for which to build the tree.
     '''
-
-    def generateTree(self, parentNode, curTime):
+    def generateTree(self, parentNode, currentTime):
         self.graph.add_node(parentNode)
         # need to define equivalence of states. actors may choose to settle for a state that is "close enough"
         if parentNode != self.desiredState:
             for move in self.possibleMoves:
                 possibleState = move.getPossibleState(parentNode)
-                possibleState.setTime(curTime)
+                possibleState.setTime(currentTime)
                 self.graph.add_node(possibleState)
                 self.graph.add_edge(parentNode, possibleState, object=move)
-        if curTime < self.maxTime:
+        if currentTime < self.maxTime:
             #change this to self.graph.neighbors(parentNode)
             adjacency = self.graph[parentNode]
             for k, v in adjacency.items():
-                self.generateTree(k, curTime=curTime + 1)
+                self.generateTree(k, currentTime=currentTime + 1)
         return parentNode
-
-    def getTree(self):
-        return self.tree
 
     '''
     remove the given move (starting from the curState) from the tree.
@@ -47,7 +42,6 @@ class MST:
     '''
     remove a whole path, up until it merges with another existing one or until it reaches the desired state.
     '''
-
     def removePath(self, parentNode, childNode):
 
         adjacency = self.graph.neighbors(childNode)
@@ -66,6 +60,6 @@ class MST:
     '''
     def getMoves(self):
         # TODO return list of moves stemming from current state
-        neighbors = self.graph.neighbors(self.curState)
-        moves = [self.graph.get_edge_data(self.curState, neighbor)["object"] for neighbor in neighbors]
+        neighbors = self.graph.neighbors(self.currentState)
+        moves = [self.graph.get_edge_data(self.currentState, neighbor)["object"] for neighbor in neighbors]
         return moves

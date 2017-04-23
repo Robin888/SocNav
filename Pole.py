@@ -40,8 +40,6 @@ class RationalityPole(Pole):
             # remove the moves that have a probability of ending up in the desired state lower than the actor's rationality + an error term
             # mst.removeMove(move)
         return mst
-#TODO Trigger moves - consider changing the desired state temporarily
-#what happens when resources go negative
 
 class RiskPole(Pole):
     def __init__(self, value, weight):
@@ -60,14 +58,13 @@ class RiskPole(Pole):
         return mst
 
 class ParticularHolisticPole(Pole):
-    # TODO can't see the whole space
     # stubbornness will be stubborn, want to do specifically what the previous poles chose, and disregard what poles later say
     def __init__(self, value, weight):
         super(ParticularHolisticPole, self).__init__(value, weight)
 
     def actOnMST(self, mst, actor):
-        # urgency pole: more urgent actors will consider less moves
-            # cut off paths at random from the MST
+        # stubbornness will be stubborn, want to do specifically what the previous poles chose, and disregard what poles later say
+        # 100% stubborn actor will not proceed to any pole later on. less stubborn actors will let more poles act.
         return mst
 
     def actOnList(self, orderedList, actor):
@@ -84,6 +81,12 @@ class PrimacyRecencyPole(Pole):
         super(PrimacyRecencyPole, self).__init__(value, weight)
 
     def actOnMST(self, mst, actor):
+        # primacy vs recency: go through actor's history/memory (in a way that is reflective of the value of the pole, ie if the actor likes history more, then history will more events in history will be considered and vice versa)
+        # need to be careful to remove an amount of moves that is reasonable
+        # if a state in history is similar enough (within error bound) to the actor's current state:
+            # if the move taken then is not similar enough (outside error bound) to a move in the MST, then remove it from MST.
+            # similarity is defiend as absolute value of difference between resource deployment of two moves, similar to the similarity of states.
+            # need to be careful about removing too many moves.
         return mst
 
     def actOnList(self, orderedList, actor):
@@ -112,31 +115,32 @@ class RoutineCreativePole(Pole):
         return mst
 
     def actOnList(self, orderedList, actor):
-        # routine vs creative: creative actor considers more random moves. 100% creative actor will have no moves pruned.
-        # work with original orderedMoves list from k-means
-            # for every move in the list:
-                # obtain a random number within bounds [0, 1). if it is more than the value of the routine/creative pole + an error Term:
-                    # move will be removed
-                    # moves that are a further distance from the centroid will have a higher probability of being randomly removed by the routine/creative pole
-                        # 1/(len - index) probability.
+        # routine vs creative: routine actor will consider moves that have been successful in the past, while creative actors will be willing to try new moves
+            # Add successful moves from the past to the list (Not all successful moves, only maxTimeTicks amount of moves in the past). Most successful moves will be added first.
+            # success of a move is defined in actor.howSuccessfulWasMove
+            # go through the list, removing moves that are not similar enough to the successful moves
+                # how similar is enough depends on the value of the pole: 100% creative actor will have no moves removed.
+
         return []
 
-# positive love negative fear 0 bland
-# extreme values are error terms
+
 class EmotionalPole(Pole):
     def __init__(self, value, weight):
         super(EmotionalPole, self).__init__(value, weight)
 
+    # positive love negative fear 0 bland
+    # extreme values are error terms
     def actOnList(self, orderedList, actor):
-        # work only on actor, same function as actOnMST.
-            # this increases the pole Error
-            # make some moves closer to the centroid than they should be.
-            #TODO don't forget to restore original value in actor after first cut has finished
+        # see below for description of pole function.
+            # add moves that go a long with the value of the pole, similar to the way they are removed below.
+            # if pole is extreme, then set error term
         return []
 
     def actOnMST(self, mst, actor):
-        # emotional: an emotional actor will make more unprecedented moves. an unemotional actor will have a low actor-related error term.
-        # work only on actor
-            # increase error term of actor proportionally to the value of the pole with actor.setError(newError)
-            # this increases the pole Error
+        #a nything beyond -0.8 or 0.8 (extreme) we treat as increased error and in this case, tendency to choose violence.
+        # From 0 to 0.7 you have increased tendency to build…
+        # From 0 to -0.7 you have a tendency to destroy. This is manifested through increasingly hostile kinetic moves.
+        # go through MST. check category of move through move.category
+        # moveCategories = a dictionary mapping from category to a range of values of this pole.
+            # remove moves whose category does not map to a range of values that contains the value of the pole (+/- an arror term)
         return mst

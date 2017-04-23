@@ -1,3 +1,4 @@
+import numpy as np
 class Move:
     def __init__(self, pmesiiVars, probability, risk):
         self.pmesiiVars = pmesiiVars
@@ -9,3 +10,6 @@ class Move:
     def getPossibleState(self, curState):
         # TODO:
         pass
+
+    def compare(self, other):
+        return np.sum([abs(self.pmesiiVars[i] - other.pmesiiVars[i]) for i in range(0, len(self.pmesiiVars))])
