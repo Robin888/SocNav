@@ -4,7 +4,7 @@ from MST import MST
 '''
 This is the superclasss for all poles. Classes inheriting from this class must define a method act.
 '''
-class Pole(metaclass=abc.ABCMeta):
+class Pole(object, metaclass = abc.ABCMeta):
     def __init__(self, value, weight):
         self.value = value
         self.weight = weight
@@ -29,7 +29,7 @@ class RationalityPole(Pole):
         # work with ordered list of moves
             # make copy of list
             # order moves based on cost (absolute value of resources deployed), with "cheapest" moves first
-            # scale the value of the pole by the length of the list, keep the virst (*value* + errorTerm) amount of moves in the list
+            # scale the value of the pole by the length of the list, keep the first (*value* + errorTerm) amount of moves in the list
         return []
 
     def actOnMST(self, mst, actor):
@@ -138,7 +138,7 @@ class EmotionalPole(Pole):
 
     def actOnMST(self, mst, actor):
         #a nything beyond -0.8 or 0.8 (extreme) we treat as increased error and in this case, tendency to choose violence.
-        # From 0 to 0.7 you have increased tendency to build…
+        # From 0 to 0.7 you have increased tendency to build
         # From 0 to -0.7 you have a tendency to destroy. This is manifested through increasingly hostile kinetic moves.
         # go through MST. check category of move through move.category
         # moveCategories = a dictionary mapping from category to a range of values of this pole.

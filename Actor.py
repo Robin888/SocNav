@@ -3,7 +3,7 @@ from MST import MST
 
 class Actor:
     def __init__(self, poles, currentState, desiredState, maxTime, error, history, criticalState):
-        self.poles = poles
+        self.poles = sorted(poles, key=lambda pole: pole.weight)
         self.currentState = currentState
         self.desiredState = desiredState
         self.maxTime = maxTime
@@ -56,15 +56,16 @@ class Actor:
     '''
     check if the previous move was successful.
     successful means that the move made the state of the actor closer to the desired state.
-    the more negative the value returned is, the more successful a move was. 0 means move didn't change the state. Positive means the move moved the current state further from the desired state.
+    the more negative the value returned is, the more successful a move was. 0 means move didn't change the state.
+    Positive means the move moved the current state further from the desired state.
     negative means the move moved the current state closer to the desired state than before
     '''
     def howSuccessfulWasMove(self):
         return self.currentState - self.memory[0].desiredState > self.memory[0].currentState - self.memory[0].desiredState
 
     '''
-    chooses the move to be made by this actor
-    appends the move to history and to memory of the actor.
+    chooses the move to be made by thisactor
+    appends the move and to memory of the actor.
     returns the Move that is chosen by this actor
     '''
 
