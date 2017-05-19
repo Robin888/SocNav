@@ -32,7 +32,7 @@ class RationalityPole(Pole):
         ol = orderedList # make copy of list
         sorted(ol, key= attrgetter('resources')) # order moves based on cost (absolute value of resources deployed), with "cheapest" moves first
         self.value = len(ol)*(self.value + actor.error) # scale the value of the pole by the length of the list, keep the first (*value* + errorTerm) amount of moves in the list
-        return ol #should we return the sorted list?
+        return ol 
 
     def actOnMST(self, mst, actor):
         # rationality: a more rational actor will consider moves that have a higher probability of ending up in the desired state
