@@ -1,4 +1,6 @@
+from operator import attrgetter
 import abc
+import math
 from MST import MST
 
 '''
@@ -27,18 +29,18 @@ class RationalityPole(Pole):
     def actOnList(self, orderedList, actor):
         # rationality: a rational actor will consider moves that cost less. 100% rationality actor will want as close to zero as possible, plus an error term
         # work with ordered list of moves
-            # make copy of list
-            # order moves based on cost (absolute value of resources deployed), with "cheapest" moves first
-            # scale the value of the pole by the length of the list, keep the first (*value* + errorTerm) amount of moves in the list
-        return []
+        ol = orderedList # make copy of list
+        sorted(ol, key= attrgetter('resources')) # order moves based on cost (absolute value of resources deployed), with "cheapest" moves first
+        self.value = len(ol)*(self.value + actor.error) # scale the value of the pole by the length of the list, keep the first (*value* + errorTerm) amount of moves in the list
+        return ol #should we return the sorted list?
 
     def actOnMST(self, mst, actor):
         # rationality: a more rational actor will consider moves that have a higher probability of ending up in the desired state
-        # ie if there is no move that guarantees the final state with 100% probability, an actor with 100% rationality will chose not to make any move.
-        # work with mst
-            # get all moves avaliable from current state
-            # remove the moves that have a probability of ending up in the desired state lower than the actor's rationality + an error term
-            # mst.removeMove(move)
+        moves = mst.getMoves(actor.currentState) # get all moves avaliable from current state
+        for move in moves:
+            if move.getIOValue().value < (self.value + actor.error): # remove the moves that have a probability of ending up in the desired state lower than the actor's rationality + an error term
+                #im assuming that the probability of ending up in the desired state is the value of tbe move  and the value of the pole is the actors rationality
+                mst.removeMove(move)
         return mst
 
 class RiskPole(Pole):
@@ -48,32 +50,43 @@ class RiskPole(Pole):
         # risk: allow moves for which there aren't enough resources
             # this increases the error term for the resource cut
             # done proportional to the pole. If the pole is 100%, the error term will go to infinity and no moves will be filtered by the resource cut
-        return []
+        if self.value == 1:
+            actor.error = 999999999 #making error term infinite
+        return ol
 
     def actOnMST(self, mst, actor):
         # risk: a more risky actor will consider moves that have a higher risk associated with them
         # work with mst
-            # get all moves available from current state
-            # remove all moves that have a higher risk than the value of the pole + an error term with mst.removeMove(move)
+        moves = mst.getMoves(actor.currentState) # get all moves available from current state
+        for move in moves:
+            if move.getIOValue().value < self.value + actor.error:  # remove all moves that have a higher risk than the value of the pole + an error term with mst.removeMove(move)
+                mst.removeMove(move)
         return mst
 
 class ParticularHolisticPole(Pole):
     # stubbornness will be stubborn, want to do specifically what the previous poles chose, and disregard what poles later say
     def __init__(self, value, weight):
         super(ParticularHolisticPole, self).__init__(value, weight)
+    def actOnList(self, orderedList, actor):
+        # holistic vs particular: holistic actor considers moves further from centroid.
+        # work with list of orderedMoves from k-means
+        ol = orderedList
+        # obtain greatest possible distance from centroid
+        maxdistance = max(centroid.distance) #k-means should be written before, to then be able to find the distance
+        # scale the value of the particular/holistic pole by that amount.
+        self.value = maxdistance*self.value
+        # remove all moves that are a distance greater than the scaled pole value + an error term from the orderedMoves list
+        for move in ol:
+            if move.getIOValue().value > (self.value + actor.error):
+                ol.remove(move)
+        return ol
+
 
     def actOnMST(self, mst, actor):
         # stubbornness will be stubborn, want to do specifically what the previous poles chose, and disregard what poles later say
         # 100% stubborn actor will not proceed to any pole later on. less stubborn actors will let more poles act.
         return mst
 
-    def actOnList(self, orderedList, actor):
-        # holistic vs particular: holistic actor considers moves further from centroid.
-        # work with list of orderedMoves from k-means
-            # obtain greatest possible distance from centroid
-            # scale the value of the particular/holistic pole by that amount.
-            # remove all moves that are a distance greater than the scaled pole value + an error term from the orderedMoves list
-        return []
 
 
 class PrimacyRecencyPole(Pole):
