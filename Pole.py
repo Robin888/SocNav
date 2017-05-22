@@ -65,6 +65,7 @@ class ParticularHolisticPole(Pole):
     def actOnMST(self, mst, actor):
         # stubbornness will be stubborn, want to do specifically what the previous poles chose, and disregard what poles later say
         # 100% stubborn actor will not proceed to any pole later on. less stubborn actors will let more poles act.
+        # Juan - think about how to do this. Requires some modification in actor class as well.
         return mst
 
     def actOnList(self, orderedList, actor):
@@ -86,10 +87,12 @@ class PrimacyRecencyPole(Pole):
         # if a state in history is similar enough (within error bound) to the actor's current state:
             # if the move taken then is not similar enough (outside error bound) to a move in the MST, then remove it from MST.
             # similarity is defiend as absolute value of difference between resource deployment of two moves, similar to the similarity of states.
-            # need to be careful about removing too many moves.
+            # Compare using event.compareTo
+            # need to be careful about removing too many moves. Juan check it so it doesn't remove everything
         return mst
 
     def actOnList(self, orderedList, actor):
+        # JUAN - when you get to this one hit me up I'll send you a sample solution I wrote for it. You can start from there and then improve if needed.
         # primacy vs recency: an actor that has a higher primacy rating will look through history. if recency is more important, then the actor will look at his memory.
         # work with the orderedMoves list.
         # get history and memory from the actor.
@@ -120,6 +123,7 @@ class RoutineCreativePole(Pole):
             # success of a move is defined in actor.howSuccessfulWasMove
             # go through the list, removing moves that are not similar enough to the successful moves
                 # how similar is enough depends on the value of the pole: 100% creative actor will have no moves removed.
+                # Compare move similarity with move.compareTo
 
         return []
 
@@ -141,6 +145,6 @@ class EmotionalPole(Pole):
         # From 0 to 0.7 you have increased tendency to build
         # From 0 to -0.7 you have a tendency to destroy. This is manifested through increasingly hostile kinetic moves.
         # go through MST. check category of move through move.category
-        # moveCategories = a dictionary mapping from category to a range of values of this pole.
+        # moveCategories = a dictionary mapping from category to a range of values of this pole. <- will be given somehow. Depends on SMRs.
             # remove moves whose category does not map to a range of values that contains the value of the pole (+/- an arror term)
         return mst
