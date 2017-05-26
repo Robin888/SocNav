@@ -2,9 +2,11 @@ import numpy as np
 from State import State
 
 class Move(State):
-    def __init__(self, resources, infrastructure, ioParams):
+    def __init__(self, resources, infrastructure, ioParams, probability, risk):
         super().__init__(resources, infrastructure)
         self.ioParams = ioParams
+        self.probability = probability
+        self.risk = risk
     '''
     given by monte carlo - gets the state resulting from this move being made by sampling a distribution
     '''
