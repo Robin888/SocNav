@@ -2,12 +2,13 @@ from MST import MST
 
 
 class Actor:
-    def __init__(self, poles, currentState, desiredState, maxTime, error, history, criticalState):
+    def __init__(self, poles, currentState, desiredState, maxTime, error, resourerror, history, criticalState):
         self.poles = sorted(poles, key=lambda pole: pole.weight)
         self.currentState = currentState
         self.desiredState = desiredState
         self.maxTime = maxTime
         self.error = error
+        self.resourerror = resourerror
         self.history = history
         self.memory = []
         self.criticalState = criticalState
@@ -48,7 +49,7 @@ class Actor:
         for move in moves:
             tempState = self.applyPossibleMove(move)
             for resource in tempState.pmesiiVars:
-                if resource < -self.errorBound:
+                if resource < -self.errorBound: #should be switched to resourerror
                     remove.add(move)
         moves = [i for i in moves if i not in remove]
         return moves
@@ -111,7 +112,7 @@ class Actor:
     '''
 
     def addToMemory(self, move):
-        self.memory.append(Event(self.currentState, move))
+        self.memory.append(Event(self.currentState, move)) #shouldn't we also include the desiredState?
 
     '''
    The poles will act again here, on the MST. The order in which these will act depends on the weights of the poles.
@@ -120,10 +121,11 @@ class Actor:
 
     def pH(self, mst):
         poles = self.poles
-
         #sort poles based on weight
         for pole in poles:
+            #add clause here for the stoppage of looking at other poles -- this due to particularholisticpole method
             mst = pole.actOnMST(mst, self)
+
         return mst
 
     '''
