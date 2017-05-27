@@ -12,6 +12,7 @@ class Actor:
         self.memory = []
         self.criticalState = criticalState
         self.successfulMoves = []
+        self.timeTicks = 0
 
     '''
     orders possible moves based on ideal move (k-means)
@@ -21,7 +22,7 @@ class Actor:
     To see specific actions of poles see the actOnList method of the poles.
     returns list of possible moves, ordered.
     '''
-
+    # TODO: restructure to use set logic instead of feeding the same list back and forth - and all of them at the end.
     # make actor history and memory for IO - populate "history", memory is populated during
     def orientation(self):
         # alter all of the poles (possibly), remember to put back
@@ -48,7 +49,7 @@ class Actor:
         for move in moves:
             tempState = self.applyPossibleMove(move)
             for resource in tempState.pmesiiVars:
-                if resource < -self.errorBound:
+                if resource < -self.error:
                     remove.add(move)
         moves = [i for i in moves if i not in remove]
         return moves
@@ -60,8 +61,8 @@ class Actor:
     Positive means the move moved the current state further from the desired state.
     negative means the move moved the current state closer to the desired state than before
     '''
-    def howSuccessfulWasMove(self):
-        return self.currentState - self.memory[0].desiredState > self.memory[0].currentState - self.memory[0].desiredState
+    def howSuccessfulWasMove(self, event):
+        return (self.currentState - self.desiredState) - (event.currentState - event.desiredState)
 
     '''
     chooses the move to be made by thisactor
@@ -70,9 +71,12 @@ class Actor:
     '''
 
     def makeDecision(self):
-        if self.howSuccessfulWasMove() < 0:
-            self.memory[0].success = self.howSuccessfulWasMove()
-            self.successfulMoves.append(self.memory[0].move)
+        previousEvents = [event for event in self.memory if event.timeTick == self.timeTicks - 1]
+        for event in previousEvents:
+            event.success = self.howSuccessfulWasMove(event)
+            if self.howSuccessfulWasMove(event) < 0:
+                self.successfulMoves.append(event.move)
+
         # TODO
         #check if resources are critically low in the current state
         for i in range(0, len(self.currentState)):
@@ -83,15 +87,15 @@ class Actor:
         cutResources = self.cutByResources(orderedMoves)
         mst = MST(self.currentState, self.desiredState, cutResources, self.maxTime)
         mst = self.pH(mst)
-        # check how many moves left in mst.
         moves = mst.getMoves()
-            # if no moves left, actor will chose to not make any move at all.
-            # if one left, then that is the move to be made
-            # else chose move at random. (actor's PH decided that these moves are equivalent, so either is acceptable).
 
-        event = Event(self.currentState,self.desiredState, result)
-        self.addToMemory(result)
-        return result
+        for result in moves:
+            event = Event(self.currentState,self.desiredState, result)
+            event.timeTick = self.timeTicks
+            self.addToMemory(result)
+
+        self.timeTicks += 1
+        return moves
 
     '''
     checks to see what would be left of this actor's resources if this move were applied.
