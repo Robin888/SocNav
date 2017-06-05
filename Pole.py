@@ -1,7 +1,6 @@
 from operator import attrgetter
 import abc
 import numpy as np
-import math
 from MST import MST
 from random import *
 '''
@@ -58,7 +57,7 @@ class RiskPole(Pole):
             # this increases the error term for the resource cut
             # done proportional to the pole. If the pole is 100%, the error term will go to infinity and no moves will be filtered by the resource cut
         ol = orderedList
-        actor.resourerror = ((pow(-10, self.value)/(self.value-1)) - 0.05) #pole cannot have bigger value then one, or else this function will not work
+        actor.error = ((pow(-10, self.value)/(self.value-1)) - 0.05) #pole cannot have bigger value then one, or else this function will not work
         return ol
 
     def actOnMST(self, mst, actor):
@@ -92,11 +91,10 @@ class ParticularHolisticPole(Pole):
     def actOnMST(self, mst, actor):
         # stubbornness will be stubborn, want to do specifically what the previous poles chose, and disregard what poles later say, what are we saying here?
         # 100% stubborn actor will not proceed to any pole later on. less stubborn actors will let more poles act.
-        # need to create a scale that divides how many poles we want to act after this pole is called...
-            # by intervals of .3 -- depending on how many more poles should act?
-        moves = mst.getMoves(actor.currentState)  # get all moves available from current state
         tempval = self.value
-
+        polesLeft = actor.polesLeft
+        numPol = int(round(tempval+1/(float(2)/float(len(polesLeft)))))
+        self.PolesAct = numPol
         return mst
 
 
@@ -107,13 +105,20 @@ class PrimacyRecencyPole(Pole):
 
     def actOnMST(self, mst, actor):
         # primacy (#using history as a guideline) vs recency (being more creative : go through actor's history/memory (in a way that is reflective of the value of the pole, ie if the actor likes history more, then more events in history will be considered and vice versa)
-        #need to create another scale that according to the values will tell us how man y
+        #need to create another scale that according to the values will tell
         # need to be careful to remove an amount of moves that is reasonable
         # if a state in history is similar enough (within error bound) to the actor's current state:
             # if the move taken then is not similar enough (outside error bound) to a move in the MST, then remove it from MST.
             # similarity is defiend as absolute value of difference between resource deployment of two moves, similar to the similarity of states.
             # Compare using event.compareTo
             # need to be careful about removing too many moves. Juan check it so it doesn't remove everything
+
+        #go through the events like in act on list
+        #instead of adding moves that are similar remove moves that are not similar
+        #remove moves according to pole value
+        #could make the error term bigger (whatever results in removing less moves)
+
+
 
 
         return mst
@@ -130,14 +135,17 @@ class PrimacyRecencyPole(Pole):
         for event in history:
             # each time an event from history is examined, val events will be examined from memory.
             splice = memory[:val] #maybe val-1?
+            hisSimilarity = Event.compare(event, actor.currentState)
             for item in splice:
                 # check whether the events are similar to the situation that the actor is in now with actor.curState. use Event.compare(event1, event2)
-                similarity = Event.compare(event, item) #0 means the same, infinity means not similar at all
-                if(similarity < 5): #5 is an arbitrary number -- recognize that we need to come up with the threshold to then be able to pinpoint what we want
-                    # if the situation is similar beyond some threshold, then the move that associated with that move will be added to the mst.
-                    mst.add(move) #I know this isn't a command, but mst is not made until we make the mst -- so should we store this move? 
-
-        return input
+                memSimilarity = Event.compare(item, actor.currentState)
+                if(hisSimilarity > actor.error):
+                    ol.append(event)
+                if(memSimilarity > actor.error): #actor.error should be fixed
+                    # if the situation is similar beyond some threshold, then the move that associated with that move will be added to the list.
+                    ol.append(item) #I know this isn't a command, but mst is not made until we make the mst -- so should we store this move?
+    #maybe make a list of all moves being considered and then calculate similarities and then add to list. Remove repeats? make set
+        return ol
 
 
 class RoutineCreativePole(Pole):
@@ -148,7 +156,7 @@ class RoutineCreativePole(Pole):
         # routine vs creative: creative actor considers more random moves.
         moves = mst.getMoves(actor.currentState)  # get all moves available from current state
         for move in moves:  # for every move going from the current state:
-            rnum = uniform(0,.999999999999) # do you think numpy is better at this? -- obtain a random number within bounds [0, 1). if it is more than the value of the routine/creative pole + an error Term:
+            rnum = random(0,1) # do you think numpy is better at this? -- obtain a random number within bounds [0, 1). if it is more than the value of the routine/creative pole + an error Term:
             if rnum > (self.value + actor.error):
                 mst.removeMove(move) # path will be removed. via mst.removeMove
         return mst
@@ -158,25 +166,44 @@ class RoutineCreativePole(Pole):
             # Add successful moves from the past to the list (Not all successful moves, only maxTimeTicks amount of moves in the past). Most successful moves will be added first.
             # success of a move is defined in actor.howSuccessfulWasMove
             # go through the list, removing moves that are not similar enough to the successful moves
-                # how similar is enough depends on the value of the pole: 100% creative actor will have no moves removed. -1 is routine, 1 is creative
+                # how similar enough depends on the value of the pole: 100% creative actor will have no moves removed. -1 is routine, 1 is creative
         ol = orderedList
-        val = actor.howSuccessfulWasMove()
+        oldMoves = sorted(actor.history[:actor.timeTicks], key=actor.howSuccessfulWasMove(), reverse=True)
+        totalVal = 0
+        for move in oldMoves:
+            totalVal += actor.howSuccessfulWasMove(move)
+        avgVal = totalVal/len(oldMoves)
+        ol.append(oldMoves)
+        moveAmount=0
+        if(self.value+1 >=0):
+            moveAmount = len(ol)/(self.value+1)
         for move in ol:
-
+            if moveAmount == 0:
+                break
+            if actor.howSuccessfulWasMove(move) > avgVal:
+                ol.remove(move)
+                moveAmount -= 1
         return ol
 
 
 class EmotionalPole(Pole):
     def __init__(self, value, weight):
         super(EmotionalPole, self).__init__(value, weight)
-
     # positive love negative fear 0 bland
     # extreme values are error terms
     def actOnList(self, orderedList, actor):
         # see below for description of pole function.
             # add moves that go a long with the value of the pole, similar to the way they are removed below.
-            # if pole is extreme, then set error term
-
+        ol = orderedList
+        poleVal = self.value
+        if poleVal < -0.8:
+            actor.error += 1-abs(self.value) #just reset the error? or add the difference
+        if poleVal > 0.8:
+            #set error term
+            actor.error += 1-self.value
+        #add moves here but which moves? idk
+        for move in actor.history:
+            if (move.value <
         return []
 
     def actOnMST(self, mst, actor):
@@ -186,4 +213,21 @@ class EmotionalPole(Pole):
         # go through MST. check category of move through move.category
         # moveCategories = a dictionary mapping from category to a range of values of this pole.
             # remove moves whose category does not map to a range of values that contains the value of the pole (+/- an arror term)
+
+        moveCategories = dict()
+
+        poleVal = self.value
+        moves = mst.getMoves(actor.currentState)
+        for moves in moves:
+        #things to ask nikita:
+
+            #how does he want me to traverse the mst -- should we just use the nx package
+            #this dictionary -- i need to assign keys and values:
+                #keys = category
+                #values = range
+                    #Violence = -1 to -0.8
+
+#need to build honor pole
+
+
         return mst
