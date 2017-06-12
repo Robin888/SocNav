@@ -118,9 +118,33 @@ class PrimacyRecencyPole(Pole):
         #remove moves according to pole value
         #could make the error term bigger (whatever results in removing less moves)
 
-
-
-
+        def actOnMST(self, mst, actor):
+            history = actor.history
+            memory = actor.memory
+            poleVal = self.value
+            moves = mst.getMoves(actor.currentState)
+            if poleVal < 0: #go into primacy
+                valHis = int(abs(poleVal)*len(history))
+                valMem = int(1 - abs(poleVal)*len(memory))
+                move1 = history[:valHis]
+                move2 = memory[:valMem]
+                fullList = move1.append(move2)
+                for move in moves:
+                    for sim in fullList:
+                    hisSimilarity = Event.compareTo(move, sim)
+                    if (hisSimilarity > self.value+actor.error or hisSimilarity < self.value-actor.error):
+                        mst.removeMove(move)
+            if poleVal > 0: #go into recency
+                valMem = int(abs(poleVal)*len(memory))
+                valHis = int(1 - abs(poleVal)*len(history))
+                move1 = history[:valHis]
+                move2 = memory[:valMem]
+                fullList = move1.append(move2)
+                for move in moves:
+                    for sim in fullList:
+                    hisSimilarity = Event.compareTo(move, sim)
+                    if (hisSimilarity > self.value+actor.error or hisSimilarity < self.value-actor.error):
+                        mst.removeMove(move)
         return mst
 
     def actOnList(self, orderedList, actor):
@@ -132,20 +156,23 @@ class PrimacyRecencyPole(Pole):
         # figure out how many more times primacy is more important than recency:
         val = int(round(abs((1 - self.value)/self.value)))
         # go through both lists at once, proportional to val:
+        ols = set()
         for event in history:
             # each time an event from history is examined, val events will be examined from memory.
             splice = memory[:val] #maybe val-1?
-            hisSimilarity = Event.compare(event, actor.currentState)
+            hisSimilarity = Event.compareTo(event, actor.currentState)
             for item in splice:
                 # check whether the events are similar to the situation that the actor is in now with actor.curState. use Event.compare(event1, event2)
-                memSimilarity = Event.compare(item, actor.currentState)
+                memSimilarity = Event.compareTo(item, actor.currentState)
                 if(hisSimilarity > actor.error):
-                    ol.append(event)
-                if(memSimilarity > actor.error): #actor.error should be fixed
+                    ols.append(event)
+                elif(memSimilarity > actor.error): #actor.error should be fixed
                     # if the situation is similar beyond some threshold, then the move that associated with that move will be added to the list.
-                    ol.append(item) #I know this isn't a command, but mst is not made until we make the mst -- so should we store this move?
+                    ols.append(item) #I know this isn't a command, but mst is not made until we make the mst -- so should we store this move?
     #maybe make a list of all moves being considered and then calculate similarities and then add to list. Remove repeats? make set
-        return ol
+        ols2 = list(ols)
+        lFinal = ol.append(ols2)
+        return lFinal
 
 
 class RoutineCreativePole(Pole):
@@ -196,15 +223,21 @@ class EmotionalPole(Pole):
             # add moves that go a long with the value of the pole, similar to the way they are removed below.
         ol = orderedList
         poleVal = self.value
+        err = actor.error
         if poleVal < -0.8:
-            actor.error += 1-abs(self.value) #just reset the error? or add the difference
+            err += 1-abs(self.value) #just reset the error? or add the difference
         if poleVal > 0.8:
             #set error term
-            actor.error += 1-self.value
-        #add moves here but which moves? idk
+            err += 1-self.value
+        addM = set()
+        upBound = poleVal + actor.error
+        lowBound = poleVal - actor.error
         for move in actor.history:
-            if (move.value <
-        return []
+            if (dict.get(move.category) > lowBound and dict.get(move.category) < upBound):
+                addM.append(move)
+        addML = list(addM)
+        finalL = ol.append(addML)
+        return finalL
 
     def actOnMST(self, mst, actor):
         #a nything beyond -0.8 or 0.8 (extreme) we treat as increased error and in this case, tendency to choose violence.
@@ -214,20 +247,16 @@ class EmotionalPole(Pole):
         # moveCategories = a dictionary mapping from category to a range of values of this pole.
             # remove moves whose category does not map to a range of values that contains the value of the pole (+/- an arror term)
 
-        moveCategories = dict()
-
         poleVal = self.value
+        err = actor.error
+        if poleVal < -0.8:
+            err += 1 - abs(self.value)
+        if poleVal > 0.8:
+            err += 1 - self.value
         moves = mst.getMoves(actor.currentState)
-        for moves in moves:
-        #things to ask nikita:
-
-            #how does he want me to traverse the mst -- should we just use the nx package
-            #this dictionary -- i need to assign keys and values:
-                #keys = category
-                #values = range
-                    #Violence = -1 to -0.8
-
-#need to build honor pole
-
+        for move in moves:
+            valRange = dict.get(move.category) #is this range of values a list? Im gonna treat it as a list
+            if self.value not in valRange and (self.value+err) not in valRange and (self.value-err) not in valRange:
+                mst.removeMove(move)
 
         return mst
