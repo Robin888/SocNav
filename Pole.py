@@ -105,46 +105,40 @@ class PrimacyRecencyPole(Pole):
 
     def actOnMST(self, mst, actor):
         # primacy (#using history as a guideline) vs recency (being more creative : go through actor's history/memory (in a way that is reflective of the value of the pole, ie if the actor likes history more, then more events in history will be considered and vice versa)
-        #need to create another scale that according to the values will tell
-        # need to be careful to remove an amount of moves that is reasonable
-        # if a state in history is similar enough (within error bound) to the actor's current state:
-            # if the move taken then is not similar enough (outside error bound) to a move in the MST, then remove it from MST.
-            # similarity is defiend as absolute value of difference between resource deployment of two moves, similar to the similarity of states.
-            # Compare using event.compareTo
-            # need to be careful about removing too many moves. Juan check it so it doesn't remove everything
+            # need to be careful about removing too many moves. Juan check it so it doesn't remove everything 
+        
+        #still need to make sure that we are not removing every move
 
-        #go through the events like in act on list
-        #instead of adding moves that are similar remove moves that are not similar
-        #remove moves according to pole value
-        #could make the error term bigger (whatever results in removing less moves)
-
-        def actOnMST(self, mst, actor):
-            history = actor.history
-            memory = actor.memory
-            poleVal = self.value
-            moves = mst.getMoves(actor.currentState)
-            if poleVal < 0: #go into primacy
-                valHis = int(abs(poleVal)*len(history))
-                valMem = int(1 - abs(poleVal)*len(memory))
-                move1 = history[:valHis]
-                move2 = memory[:valMem]
-                fullList = move1.append(move2)
-                for move in moves:
-                    for sim in fullList:
-                    hisSimilarity = Event.compareTo(move, sim)
-                    if (hisSimilarity > self.value+actor.error or hisSimilarity < self.value-actor.error):
-                        mst.removeMove(move)
-            if poleVal > 0: #go into recency
-                valMem = int(abs(poleVal)*len(memory))
-                valHis = int(1 - abs(poleVal)*len(history))
-                move1 = history[:valHis]
-                move2 = memory[:valMem]
-                fullList = move1.append(move2)
-                for move in moves:
-                    for sim in fullList:
-                    hisSimilarity = Event.compareTo(move, sim)
-                    if (hisSimilarity > self.value+actor.error or hisSimilarity < self.value-actor.error):
-                        mst.removeMove(move)
+        history = actor.history
+        memory = actor.memory
+        poleVal = self.value
+        moves = mst.getMoves(actor.currentState)
+        if poleVal < 0: #go into primacy #need to create another scale that according to the values will tell
+            valHis = int(abs(poleVal)*len(history))
+            valMem = int(1 - abs(poleVal)*len(memory))
+            move1 = history[:valHis]
+            move2 = memory[:valMem]
+            fullList = move1.append(move2)
+            for sim in fullList:
+                hisSimilarity = Event.compareTo(actor.currentState, sim) 
+                if(hisSimilarity < (self.value+actor.error) and hisSimilarity> (self.value-actor.error)): # if a state in history is similar enough (within error bound) to the actor's current state:
+                    for move in moves:
+                        movSimilarity = Event.compareTo(move, sim)
+                        if (movSimilarity > (self.value+actor.error) or movSimilarity < (self.value-actor.error)):# if the move taken then is not similar enough (outside error bound) to a move in the MST, then remove it from MST.
+                            mst.removeMove(move)
+        if poleVal > 0: #go into recency
+            valMem = int(abs(poleVal)*len(memory))
+            valHis = int(1 - abs(poleVal)*len(history))
+            move1 = history[:valHis]
+            move2 = memory[:valMem]
+            fullList = move1.append(move2)
+            for sim in fullList:
+                hisSimilarity = Event.compareTo(actor.currentState, sim)
+                if (hisSimilarity < (self.value + actor.error) and hisSimilarity > (self.value - actor.error)):  # if a state in history is similar enough (within error bound) to the actor's current state:
+                    for move in moves:
+                        movSimilarity = Event.compareTo(move, sim)
+                        if (movSimilarity > (self.value + actor.error) or movSimilarity < (self.value - actor.error)):# if the move taken then is not similar enough (outside error bound) to a move in the MST, then remove it from MST.
+                            mst.removeMove(move)
         return mst
 
     def actOnList(self, orderedList, actor):
