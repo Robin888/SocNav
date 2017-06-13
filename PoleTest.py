@@ -12,25 +12,46 @@
 #Feed the MST into the actOnMST method of the Pole and see that the moves (paths) that are left after the method returns
 # is as expected.
 #Note any inconsistencies where methods don't work/don't return what is expected.
+from MST import MST
+import Pole
+from Move import Move
 
-class sampleMove(Move):
-    def __init__(self, resources, infrastructure, ioParams, probability, risk):
-        super().__init__(resources, infrastructure)
-        self.ioParams = ioParams
-        self.probability = probability
-        self.risk = risk
-        self.category = "" #category #need to make sure that we add this from somewhere
-
-sampleMove1 = sampleMove(ioParams = , probability = , risk = )
-sampleMove2 = sampleMove(ioParams = , probability = , risk = )
-sampleMove3 = sampleMove(ioParams = , probability = , risk = )
-sampleMove4 = sampleMove(ioParams = , probability = , risk = )
-sampleMove5 = sampleMove(ioParams = , probability = , risk = )
-sampleMove6 = sampleMove(ioParams = , probability = , risk = )
-sampleMove7 = sampleMove(ioParams = , probability = , risk = )
-sampleMove8 = sampleMove(ioParams = , probability = , risk = )
-sampleMove9 = sampleMove(ioParams = , probability = , risk = )
-sampleMove10 = sampleMove(ioParams = , probability = , risk = )
+sampleMove1 = Move(ioParams = , probability = , risk = )
+sampleMove2 = Move(ioParams = , probability = , risk = )
+sampleMove3 = Move(ioParams = , probability = , risk = )
+sampleMove4 = Move(ioParams = , probability = , risk = )
+sampleMove5 = Move(ioParams = , probability = , risk = )
+sampleMove6 = Move(ioParams = , probability = , risk = )
+sampleMove7 = Move(ioParams = , probability = , risk = )
+sampleMove8 = Move(ioParams = , probability = , risk = )
+sampleMove10 = Move(ioParams = , probability = , risk = )
 
 list = []
 list.append(sampleMove1,sampleMove2,sampleMove3,sampleMove4,sampleMove5,sampleMove6,sampleMove7,sampleMove8,sampleMove9,sampleMove10)
+
+mst = MST(currentState = , desiredState = ,moves = list, maxTime = )
+
+RationalityPole = RationalityPole( , )
+RiskPole = RiskPole( , )
+ParticularHolisticPole = ParticularHolisticPole( , )
+PrimacyRecencyPole = PrimacyRecencyPole( , )
+RoutineCreativePole = RoutineCreativePole( , )
+EmotionalPole = EmotionalPole( , )
+
+print(RationalityPole.actonList(list))
+print(RationalityPole.actonMST(mst))
+
+print(RiskPole.actonList(list))
+print(RiskPole.actonMST(mst))
+
+print(ParticularHolisticPole.actonList(list))
+print(ParticularHolisticPole.actonMST(mst))
+
+print(PrimacyRecencyPole.actonList(list))
+print(PrimacyRecencyPole.actonMST(mst))
+
+print(RoutineCreativePole.actonList(list))
+print(RoutineCreativePole.actonMST(mst))
+
+print(EmotionalPole.actonList(list))
+print(EmotionalPole.actonMST(mst))
