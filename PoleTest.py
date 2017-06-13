@@ -13,7 +13,7 @@
 # is as expected.
 #Note any inconsistencies where methods don't work/don't return what is expected.
 
-class sampleMove1(Move):
+class sampleMove(Move):
     def __init__(self, resources, infrastructure, ioParams, probability, risk):
         super().__init__(resources, infrastructure)
         self.ioParams = ioParams
@@ -21,77 +21,16 @@ class sampleMove1(Move):
         self.risk = risk
         self.category = "" #category #need to make sure that we add this from somewhere
 
-class sampleMove2(Move):
-    def __init__(self, resources, infrastructure, ioParams, probability, risk):
-        super().__init__(resources, infrastructure)
-        self.ioParams = ioParams
-        self.probability = probability
-        self.risk = risk
-        self.category = "" #category #need to make sure that we add this from somewhere
-
-class sampleMove3(Move):
-    def __init__(self, resources, infrastructure, ioParams, probability, risk):
-        super().__init__(resources, infrastructure)
-        self.ioParams = ioParams
-        self.probability = probability
-        self.risk = risk
-        self.category = "" #category #need to make sure that we add this from somewhere
-
-class sampleMove4(Move):
-    def __init__(self, resources, infrastructure, ioParams, probability, risk):
-        super().__init__(resources, infrastructure)
-        self.ioParams = ioParams
-        self.probability = probability
-        self.risk = risk
-        self.category = "" #category #need to make sure that we add this from somewhere
-
-class sampleMove5(Move):
-    def __init__(self, resources, infrastructure, ioParams, probability, risk):
-        super().__init__(resources, infrastructure)
-        self.ioParams = ioParams
-        self.probability = probability
-        self.risk = risk
-        self.category = "" #category #need to make sure that we add this from somewhere
-
-class sampleMove6(Move):
-    def __init__(self, resources, infrastructure, ioParams, probability, risk):
-        super().__init__(resources, infrastructure)
-        self.ioParams = ioParams
-        self.probability = probability
-        self.risk = risk
-        self.category = "" #category #need to make sure that we add this from somewhere
-
-class sampleMove7(Move):
-    def __init__(self, resources, infrastructure, ioParams, probability, risk):
-        super().__init__(resources, infrastructure)
-        self.ioParams = ioParams
-        self.probability = probability
-        self.risk = risk
-        self.category = "" #category #need to make sure that we add this from somewhere
-
-class sampleMove8(Move):
-    def __init__(self, resources, infrastructure, ioParams, probability, risk):
-        super().__init__(resources, infrastructure)
-        self.ioParams = ioParams
-        self.probability = probability
-        self.risk = risk
-        self.category = "" #category #need to make sure that we add this from somewhere
-
-class sampleMove9(Move):
-    def __init__(self, resources, infrastructure, ioParams, probability, risk):
-        super().__init__(resources, infrastructure)
-        self.ioParams = ioParams
-        self.probability = probability
-        self.risk = risk
-        self.category = "" #category #need to make sure that we add this from somewhere
-
-class sampleMove10(Move):
-    def __init__(self, resources, infrastructure, ioParams, probability, risk):
-        super().__init__(resources, infrastructure)
-        self.ioParams = ioParams
-        self.probability = probability
-        self.risk = risk
-        self.category = "" #category #need to make sure that we add this from somewhere
+sampleMove1 = sampleMove(ioParams = , probability = , risk = )
+sampleMove2 = sampleMove(ioParams = , probability = , risk = )
+sampleMove3 = sampleMove(ioParams = , probability = , risk = )
+sampleMove4 = sampleMove(ioParams = , probability = , risk = )
+sampleMove5 = sampleMove(ioParams = , probability = , risk = )
+sampleMove6 = sampleMove(ioParams = , probability = , risk = )
+sampleMove7 = sampleMove(ioParams = , probability = , risk = )
+sampleMove8 = sampleMove(ioParams = , probability = , risk = )
+sampleMove9 = sampleMove(ioParams = , probability = , risk = )
+sampleMove10 = sampleMove(ioParams = , probability = , risk = )
 
 list = []
 list.append(sampleMove1,sampleMove2,sampleMove3,sampleMove4,sampleMove5,sampleMove6,sampleMove7,sampleMove8,sampleMove9,sampleMove10)
