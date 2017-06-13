@@ -148,3 +148,25 @@ class EmotionalPole(Pole):
         # moveCategories = a dictionary mapping from category to a range of values of this pole. <- will be given somehow. Depends on SMRs.
             # remove moves whose category does not map to a range of values that contains the value of the pole (+/- an arror term)
         return mst
+
+class GenerosityPole(Pole):
+    def __init__(self, value, weight):
+        super(GenerosityPole, self).__init__(value, weight)
+        self.maxListPrice = None
+
+    def actOnList(self, orderedList, actor):
+        # if self.maxListPrice = None: (if statement for caching)
+            # go through list, find most expensive move by summing over all resources. self.maxListPrice = resulf of this calculation
+        # scale value of pole to [0, 1] val = result of this calculation
+        # val = val * self.maxListPrice
+        # go through list, remove all moves that have cost (total resource delta) greater than val + error term
+        return []
+        
+    def actOnMST(self, mst, actor):
+        # similar function as above, maybe you can extract a method to avoid duplicate code.
+        # go through each path on the mst (recursively) (two passes)
+        # first time find most expensive move = val
+        # scale pole to [0, 1] 
+        # val = val * most expensive move
+        # second time go through each path and remove the path if any move in it is more expensive than val + an error 
+        return mst
