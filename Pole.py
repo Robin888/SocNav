@@ -136,8 +136,9 @@ class EmotionalPole(Pole):
     # extreme values are error terms
     def actOnList(self, orderedList, actor):
         # see below for description of pole function.
-            # add moves that go a long with the value of the pole, similar to the way they are removed below.
+            # remove moves that do not go along with the value of the pole. should be the exact opposite of what you did @Juan. Small fix. Similar functionality to that below. you may be able to extract a method.
             # if pole is extreme, then set error term
+            
         return []
 
     def actOnMST(self, mst, actor):
