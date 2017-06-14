@@ -12,46 +12,42 @@
 #Feed the MST into the actOnMST method of the Pole and see that the moves (paths) that are left after the method returns
 # is as expected.
 #Note any inconsistencies where methods don't work/don't return what is expected.
+
 from MST import MST
 import Pole
 from Move import Move
 
-sampleMove1 = Move(ioParams = , probability = , risk = )
-sampleMove2 = Move(ioParams = , probability = , risk = )
-sampleMove3 = Move(ioParams = , probability = , risk = )
-sampleMove4 = Move(ioParams = , probability = , risk = )
-sampleMove5 = Move(ioParams = , probability = , risk = )
-sampleMove6 = Move(ioParams = , probability = , risk = )
-sampleMove7 = Move(ioParams = , probability = , risk = )
-sampleMove8 = Move(ioParams = , probability = , risk = )
-sampleMove10 = Move(ioParams = , probability = , risk = )
+#ioParams is None, category None for now, probability 0 to 1
+sampleMove1 = Move(ioParams = None, probability = 0.1, category = None)
+sampleMove2 = Move(ioParams = None, probability = 0.2, category = None)
+sampleMove3 = Move(ioParams = None, probability = 0.3, category = None)
+sampleMove4 = Move(ioParams = None, probability = 0.4, category = None)
+sampleMove5 = Move(ioParams = None, probability = 0.5, category = None)
+sampleMove6 = Move(ioParams = None, probability = 0.6, category = None)
+sampleMove7 = Move(ioParams = None, probability = 0.7, category = None)
+sampleMove8 = Move(ioParams = None, probability = 0.8, category = None)
+sampleMove10 = Move(ioParams = None, probability = 0.9, category = None)
 
 list = []
 list.append(sampleMove1,sampleMove2,sampleMove3,sampleMove4,sampleMove5,sampleMove6,sampleMove7,sampleMove8,sampleMove9,sampleMove10)
 
-mst = MST(currentState = , desiredState = ,moves = list, maxTime = )
+#mst = MST(currentState = ({"A": 4}, {"B": 5}), desiredState = ({"A": 6}, {"B": 9}), moves = list, maxTime = 7)
 
-RationalityPole = RationalityPole( , )
-RiskPole = RiskPole( , )
-ParticularHolisticPole = ParticularHolisticPole( , )
-PrimacyRecencyPole = PrimacyRecencyPole( , )
-RoutineCreativePole = RoutineCreativePole( , )
-EmotionalPole = EmotionalPole( , )
+#value = (-1,1), weight = (0,1)? (Tony says 0-1 for weight might not be enough)
+RationalityPole = RationalityPole(-.5, .5)
+RiskPole = RiskPole(-.3, .3)
+ParticularHolisticPole = ParticularHolisticPole(-.4, .4)
+PrimacyRecencyPole = PrimacyRecencyPole(-.2, .2)
+RoutineCreativePole = RoutineCreativePole(-.1, .1)
 
 print(RationalityPole.actonList(list))
-print(RationalityPole.actonMST(mst))
-
 print(RiskPole.actonList(list))
-print(RiskPole.actonMST(mst))
-
 print(ParticularHolisticPole.actonList(list))
-print(ParticularHolisticPole.actonMST(mst))
-
 print(PrimacyRecencyPole.actonList(list))
-print(PrimacyRecencyPole.actonMST(mst))
-
 print(RoutineCreativePole.actonList(list))
-print(RoutineCreativePole.actonMST(mst))
 
-print(EmotionalPole.actonList(list))
-print(EmotionalPole.actonMST(mst))
+#print(RationalityPole.actonMST(mst))
+#print(RiskPole.actonMST(mst))
+#print(ParticularHolisticPole.actonMST(mst))
+#print(PrimacyRecencyPole.actonMST(mst))
+#print(RoutineCreativePole.actonMST(mst))
