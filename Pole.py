@@ -254,3 +254,9 @@ class EmotionalPole(Pole):
                 mst.removeMove(move)
 
         return mst
+
+class CostPole(Pole):
+    def __init__(self, value, weight):
+        super(EmotionalPole, self).__init__(value, weight)
+        
+        #
