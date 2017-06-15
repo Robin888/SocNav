@@ -20,7 +20,7 @@ class Actor:
     if similar and if move was successful then add that move to current list of moves being considered for this actor
     returns list of moves to be added to moves being currently considered
     '''
-    def compareToOthers(self):
+    def compareToOthersByPoles(self):
         currentEvent = Event(self.currentState, self.desiredState, None)
         ret = []
         def checkMoves(eventList):
@@ -36,6 +36,17 @@ class Actor:
             ret += checkMoves(actor.memory)
         return ret
 
+    '''
+    Compare self to others by desired end state. Results could be competitive, conflicting, or cooperative.
+    Go through all other actors. Check their desired end state. 
+    If they are polar opposites then this is conflicting. 
+    If they are similar but not same resources, then they are cooperative. 
+    If trying to own the same resources, then this is competitive.
+    Adjust IO values based on this result.
+    def compareToOthersByDesiredEndState():
+        for actor in self.otherActors:
+            difference = 
+    '''
     '''
     orders possible moves based on ideal move (k-means)
     record how far away each move is from the ideal move
