@@ -2,6 +2,7 @@ from operator import attrgetter
 import abc
 import numpy as np
 from MST import MST
+from Actor import Actor, Event
 from random import *
 import pickle
 '''
@@ -96,6 +97,7 @@ class ParticularHolisticPole(Pole):
         polesLeft = actor.polesLeft
         numPol = int(round(tempval+1/(float(2)/float(len(polesLeft)))))
         self.PolesAct = numPol
+        # Juan - think about how to do this. Requires some modification in actor class as well.
         return mst
 
 
@@ -138,9 +140,12 @@ class PrimacyRecencyPole(Pole):
                         movSimilarity = Event.compareTo(move, sim)
                         if (movSimilarity > (self.value + actor.error) or movSimilarity < (self.value - actor.error)):# if the move taken then is not similar enough (outside error bound) to a move in the MST, then remove it from MST.
                             mst.removeMove(move)
+
+            # need to be careful about removing too many moves. Juan check it so it doesn't remove everything
         return mst
 
     def actOnList(self, orderedList, actor):
+        # JUAN - when you get to this one hit me up I'll send you a sample solution I wrote for it. You can start from there and then improve if needed.
         # primacy vs recency: an actor that has a higher primacy rating will look through history. if recency is more important, then the actor will look at his memory.
         orderedMoves = orderedList # work with the orderedMoves list.
         history = actor.history #get history
@@ -227,12 +232,13 @@ class EmotionalPole(Pole):
         updatedMoves = [x for x in orderedMoves if x not in movToBeAdded]
         return updatedMoves
 
+
     def actOnMST(self, mst, actor):
         #a nything beyond -0.8 or 0.8 (extreme) we treat as increased error and in this case, tendency to choose violence.
         # From 0 to 0.7 you have increased tendency to build
         # From 0 to -0.7 you have a tendency to destroy. This is manifested through increasingly hostile kinetic moves.
         # go through MST. check category of move through move.category
-        # moveCategories = a dictionary mapping from category to a range of values of this pole.
+        # moveCategories = a dictionary mapping from category to a range of values of this pole. <- will be given somehow. Depends on SMRs.
             # remove moves whose category does not map to a range of values that contains the value of the pole (+/- an arror term)
 
         poleVal = self.value
@@ -247,4 +253,26 @@ class EmotionalPole(Pole):
             if self.value not in valRange and (self.value+err) not in valRange and (self.value-err) not in valRange:
                 mst.removeMove(move)
 
+        return mst
+
+class GenerosityPole(Pole):
+    def __init__(self, value, weight):
+        super(GenerosityPole, self).__init__(value, weight)
+        self.maxListPrice = None
+
+    def actOnList(self, orderedList, actor):
+        # if self.maxListPrice = None: (if statement for caching)
+            # go through list, find most expensive move by summing over all resources. self.maxListPrice = resulf of this calculation
+        # scale value of pole to [0, 1] val = result of this calculation
+        # val = val * self.maxListPrice
+        # go through list, remove all moves that have cost (total resource delta) greater than val + error term
+        return []
+        
+    def actOnMST(self, mst, actor):
+        # similar function as above, maybe you can extract a method to avoid duplicate code.
+        # go through each path on the mst (recursively) (two passes)
+        # first time find most expensive move = val
+        # scale pole to [0, 1] 
+        # val = val * most expensive move
+        # second time go through each path and remove the path if any move in it is more expensive than val + an error 
         return mst
