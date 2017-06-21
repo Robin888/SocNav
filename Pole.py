@@ -3,6 +3,7 @@ import abc
 import numpy as np
 from MST import MST
 from random import *
+import pickle
 '''
 This is the superclasss for all poles. Classes inheriting from this class must define a method act.
 '''
@@ -56,9 +57,9 @@ class RiskPole(Pole):
         # risk: allow moves for which there aren't enough resources
             # this increases the error term for the resource cut
             # done proportional to the pole. If the pole is 100%, the error term will go to infinity and no moves will be filtered by the resource cut
-        ol = orderedList
+        orderedMoves = orderedList
         actor.error = ((pow(-10, self.value)/(self.value-1)) - 0.05) #pole cannot have bigger value then one, or else this function will not work
-        return ol
+        return orderedMoves
 
     def actOnMST(self, mst, actor):
         # risk: a more risky actor will consider moves that have a higher risk associated with them
@@ -76,16 +77,16 @@ class ParticularHolisticPole(Pole):
     def actOnList(self, orderedList, actor):
         # holistic vs particular: holistic actor considers moves further from centroid.
         # work with list of orderedMoves from k-means
-        ol = orderedList
+        orderedMoves = orderedList
         # obtain greatest possible distance from centroid
-        maxdistance = abs(np.linalg.norm(ol[-1]-actor.ioValues))#k-means should be written before, to then be able to find the distance
+        maxdistance = abs(np.linalg.norm(orderedMoves[-1]-actor.ioValues))#k-means should be written before, to then be able to find the distance
         # scale the value of the particular/holistic pole by that amount.
         tempval = maxdistance*self.value
         # remove all moves that are a distance greater than the scaled pole value + an error term from the orderedMoves list
-        for move in ol:
+        for move in orderedMoves:
             if move.getIOValue().value > (tempval + actor.error):
-                ol.remove(move)
-        return ol
+                orderedMoves.remove(move)
+        return orderedMoves
 
  #talk to nikita about this
     def actOnMST(self, mst, actor):
@@ -105,22 +106,20 @@ class PrimacyRecencyPole(Pole):
 
     def actOnMST(self, mst, actor):
         # primacy (#using history as a guideline) vs recency (being more creative : go through actor's history/memory (in a way that is reflective of the value of the pole, ie if the actor likes history more, then more events in history will be considered and vice versa)
-            # need to be careful about removing too many moves. Juan check it so it doesn't remove everything 
-        
+            # need to be careful about removing too many moves. Juan check it so it doesn't remove everything
         #still need to make sure that we are not removing every move
-
         history = actor.history
         memory = actor.memory
         poleVal = self.value
-        moves = mst.getMoves(actor.currentState)
-        if poleVal < 0: #go into primacy #need to create another scale that according to the values will tell
+        moves = mst.getMoves()
+        if poleVal < 0: #go into primacy
             valHis = int(abs(poleVal)*len(history))
-            valMem = int(1 - abs(poleVal)*len(memory))
-            move1 = history[:valHis]
-            move2 = memory[:valMem]
-            fullList = move1.append(move2)
-            for sim in fullList:
-                hisSimilarity = Event.compareTo(actor.currentState, sim) 
+            valMem = int((1 - abs(poleVal))*len(memory))
+            hisMoves = history[:valHis]
+            memMoves = memory[:valMem]
+            combMoves = hisMoves.append(memMoves) #contains both the moves in memory and the moves in history that will be looked at
+            for sim in combMoves:
+                hisSimilarity = Event.compareTo(actor.currentState, sim)
                 if(hisSimilarity < (self.value+actor.error) and hisSimilarity> (self.value-actor.error)): # if a state in history is similar enough (within error bound) to the actor's current state:
                     for move in moves:
                         movSimilarity = Event.compareTo(move, sim)
@@ -128,11 +127,11 @@ class PrimacyRecencyPole(Pole):
                             mst.removeMove(move)
         if poleVal > 0: #go into recency
             valMem = int(abs(poleVal)*len(memory))
-            valHis = int(1 - abs(poleVal)*len(history))
-            move1 = history[:valHis]
-            move2 = memory[:valMem]
-            fullList = move1.append(move2)
-            for sim in fullList:
+            valHis = int((1 - abs(poleVal))*len(history))
+            hisMoves = history[:valHis]
+            memMoves = memory[:valMem]
+            combMoves = hisMoves.append(memMoves)
+            for sim in combMoves:
                 hisSimilarity = Event.compareTo(actor.currentState, sim)
                 if (hisSimilarity < (self.value + actor.error) and hisSimilarity > (self.value - actor.error)):  # if a state in history is similar enough (within error bound) to the actor's current state:
                     for move in moves:
@@ -143,15 +142,12 @@ class PrimacyRecencyPole(Pole):
 
     def actOnList(self, orderedList, actor):
         # primacy vs recency: an actor that has a higher primacy rating will look through history. if recency is more important, then the actor will look at his memory.
-        ol = orderedList # work with the orderedMoves list.
-        # get history and memory from the actor.
-        history = actor.history
-        memory = actor.memory
-        # figure out how many more times primacy is more important than recency:
-        val = int(round(abs((1 - self.value)/self.value)))
-        # go through both lists at once, proportional to val:
-        ols = set()
-        for event in history:
+        orderedMoves = orderedList # work with the orderedMoves list.
+        history = actor.history #get history
+        memory = actor.memory #get memory from the actor.
+        val = int(round(abs((1 - self.value)/self.value))) # figure out how many more times primacy is more important than recency
+        simMovesSet = set()
+        for event in history:# go through both lists at once, proportional to val:
             # each time an event from history is examined, val events will be examined from memory.
             splice = memory[:val] #maybe val-1?
             hisSimilarity = Event.compareTo(event, actor.currentState)
@@ -159,14 +155,12 @@ class PrimacyRecencyPole(Pole):
                 # check whether the events are similar to the situation that the actor is in now with actor.curState. use Event.compare(event1, event2)
                 memSimilarity = Event.compareTo(item, actor.currentState)
                 if(hisSimilarity > actor.error):
-                    ols.append(event)
+                    simMovesSet.append(event)
                 elif(memSimilarity > actor.error): #actor.error should be fixed
                     # if the situation is similar beyond some threshold, then the move that associated with that move will be added to the list.
-                    ols.append(item) #I know this isn't a command, but mst is not made until we make the mst -- so should we store this move?
-    #maybe make a list of all moves being considered and then calculate similarities and then add to list. Remove repeats? make set
-        ols2 = list(ols)
-        lFinal = ol.append(ols2)
-        return lFinal
+                    simMovesSet.append(item) #I know this isn't a command, but mst is not made until we make the mst -- so should we store this move?
+        updatedMoves = orderedMoves.append(list(simMovesSet))
+        return updatedMoves
 
 
 class RoutineCreativePole(Pole):
@@ -188,23 +182,23 @@ class RoutineCreativePole(Pole):
             # success of a move is defined in actor.howSuccessfulWasMove
             # go through the list, removing moves that are not similar enough to the successful moves
                 # how similar enough depends on the value of the pole: 100% creative actor will have no moves removed. -1 is routine, 1 is creative
-        ol = orderedList
+        orderedMoves = orderedList
         oldMoves = sorted(actor.history[:actor.timeTicks], key=actor.howSuccessfulWasMove(), reverse=True)
         totalVal = 0
         for move in oldMoves:
             totalVal += actor.howSuccessfulWasMove(move)
         avgVal = totalVal/len(oldMoves)
-        ol.append(oldMoves)
+        orderedMoves.append(oldMoves)
         moveAmount=0
         if(self.value+1 >=0):
-            moveAmount = len(ol)/(self.value+1)
-        for move in ol:
+            moveAmount = len(orderedMoves)/(self.value+1)
+        for move in orderedMoves:
             if moveAmount == 0:
                 break
             if actor.howSuccessfulWasMove(move) > avgVal:
-                ol.remove(move)
+                orderedMoves.remove(move)
                 moveAmount -= 1
-        return ol
+        return orderedMoves
 
 
 class EmotionalPole(Pole):
@@ -212,26 +206,26 @@ class EmotionalPole(Pole):
         super(EmotionalPole, self).__init__(value, weight)
     # positive love negative fear 0 bland
     # extreme values are error terms
+
     def actOnList(self, orderedList, actor):
         # see below for description of pole function.
             # add moves that go a long with the value of the pole, similar to the way they are removed below.
-        ol = orderedList
+        orderedMoves = orderedList
         poleVal = self.value
-        err = actor.error
+        actError = actor.error
         if poleVal < -0.8:
-            err += 1-abs(self.value) #just reset the error? or add the difference
+            actError += 1-abs(self.value) #just reset the error? or add the difference
         if poleVal > 0.8:
             #set error term
-            err += 1-self.value
-        addM = set()
-        upBound = poleVal + actor.error
-        lowBound = poleVal - actor.error
+            actError += 1-self.value
+        movToBeAdded = set()
+        upperBound = poleVal + actor.error
+        lowerBound = poleVal - actor.error
         for move in actor.history:
-            if (dict.get(move.category) > lowBound and dict.get(move.category) < upBound):
-                addM.append(move)
-        addML = list(addM)
-        finalL = ol.append(addML)
-        return finalL
+            if (moveCategories.get(move.category) < lowerBound and moveCategories.get(move.category) > upperBound):
+                movToBeAdded.append(move)
+        updatedMoves = [x for x in orderedMoves if x not in movToBeAdded]
+        return updatedMoves
 
     def actOnMST(self, mst, actor):
         #a nything beyond -0.8 or 0.8 (extreme) we treat as increased error and in this case, tendency to choose violence.
@@ -249,14 +243,8 @@ class EmotionalPole(Pole):
             err += 1 - self.value
         moves = mst.getMoves(actor.currentState)
         for move in moves:
-            valRange = dict.get(move.category) #is this range of values a list? Im gonna treat it as a list
+            valRange = moveCategories.get(move.category) #is this range of values a list? Im gonna treat it as a list
             if self.value not in valRange and (self.value+err) not in valRange and (self.value-err) not in valRange:
                 mst.removeMove(move)
 
         return mst
-
-class CostPole(Pole):
-    def __init__(self, value, weight):
-        super(EmotionalPole, self).__init__(value, weight)
-        
-        #
