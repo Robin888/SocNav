@@ -8,6 +8,9 @@ import pickle
 '''
 This is the superclasss for all poles. Classes inheriting from this class must define a method act.
 '''
+fileObject = open('EmotionalPoleCategories', 'r')
+moveCategories = pickle.load(fileObject)
+
 class Pole(object, metaclass = abc.ABCMeta):
     def __init__(self, value, weight):
         self.value = value
@@ -207,6 +210,7 @@ class RoutineCreativePole(Pole):
 
 
 class EmotionalPole(Pole):
+
     def __init__(self, value, weight):
         super(EmotionalPole, self).__init__(value, weight)
     # positive love negative fear 0 bland
@@ -247,7 +251,7 @@ class EmotionalPole(Pole):
             err += 1 - abs(self.value)
         if poleVal > 0.8:
             err += 1 - self.value
-        moves = mst.getMoves(actor.currentState)
+        moves = mst.getMoves()
         for move in moves:
             valRange = moveCategories.get(move.category) #is this range of values a list? Im gonna treat it as a list
             if self.value not in valRange and (self.value+err) not in valRange and (self.value-err) not in valRange:
@@ -261,15 +265,30 @@ class GenerosityPole(Pole):
         self.maxListPrice = None
 
     def actOnList(self, orderedList, actor):
-        # if self.maxListPrice = None: (if statement for caching)
-            # go through list, find most expensive move by summing over all resources. self.maxListPrice = resulf of this calculation
+        orderedMoves = orderedList
+        removeMoves = set()
+        if self.maxListPrice == None: # if self.maxListPrice = None: (if statement for caching)
+            for move in orderedMoves: # go through list, find most expensive move by summing over all resources. self.maxListPrice = resulf of this calculation
+                if self.maxListPrice < move.sum:
+                    self.maxListPrice = move.sum
         # scale value of pole to [0, 1] val = result of this calculation
         # val = val * self.maxListPrice
-        # go through list, remove all moves that have cost (total resource delta) greater than val + error term
-        return []
+        scaledVal = ((abs(self.value)/2)+0.5)*self.maxListPrice
+        for move in orderedMoves:
+            if move.sum > (scaledVal + actor.error):# go through list, remove all moves that have cost (total resource delta) greater than val + error term
+                removeMoves.append(move)
+        orderedMoves = [x for x in orderedMoves if x not in removeMoves]
+        return orderedMoves
         
     def actOnMST(self, mst, actor):
         # similar function as above, maybe you can extract a method to avoid duplicate code.
+        if self.maxListPrice == None:
+            for move in moves:
+
+
+
+
+
         # go through each path on the mst (recursively) (two passes)
         # first time find most expensive move = val
         # scale pole to [0, 1] 
