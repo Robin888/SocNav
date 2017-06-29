@@ -5,6 +5,7 @@ from MST import MST
 from Actor import Actor, Event
 from random import *
 import pickle
+import networkx as nx
 '''
 This is the superclasss for all poles. Classes inheriting from this class must define a method act.
 '''
@@ -83,7 +84,7 @@ class ParticularHolisticPole(Pole):
         # work with list of orderedMoves from k-means
         orderedMoves = orderedList
         # obtain greatest possible distance from centroid
-        maxdistance = abs(np.linalg.norm(orderedMoves[-1]-actor.ioValues))#k-means should be written before, to then be able to find the distance
+        maxdistance = abs(np.linalg.norm(orderedMoves[-1]-actor.ioValues))
         # scale the value of the particular/holistic pole by that amount.
         tempval = maxdistance*self.value
         # remove all moves that are a distance greater than the scaled pole value + an error term from the orderedMoves list
@@ -231,7 +232,7 @@ class EmotionalPole(Pole):
         upperBound = poleVal + actor.error
         lowerBound = poleVal - actor.error
         for move in actor.history:
-            if (moveCategories.get(move.category) < lowerBound and moveCategories.get(move.category) > upperBound):
+            if (moveCategories.get(move.category) < lowerBound and moveCategories.get(move.category) > upperBound): #how to pick a value if the move category values have multiple values?
                 movToBeAdded.append(move)
         updatedMoves = [x for x in orderedMoves if x not in movToBeAdded]
         return updatedMoves
@@ -281,17 +282,22 @@ class GenerosityPole(Pole):
         return orderedMoves
         
     def actOnMST(self, mst, actor):
+
         # similar function as above, maybe you can extract a method to avoid duplicate code.
-        if self.maxListPrice == None:
-            for move in moves:
-
-
-
-
-
         # go through each path on the mst (recursively) (two passes)
+        mostExpensiveMove = 0 #figure this out
         # first time find most expensive move = val
-        # scale pole to [0, 1] 
+        # first time find most expensive move = val
+        for path in nx.all_simplePaths(mst.generateTree(), actor.currentState, actor.desiredState):
+            for move in path:
+                if move.sum > mostExpensiveMove:
+                    mostExpensiveMove = move.sum
+        scaledVal = ((abs(self.value) / 2) + 0.5) * mostExpensiveMove #Pole Scaling and Val are calculated at the same time
+        # scale pole to [0, 1]
         # val = val * most expensive move
-        # second time go through each path and remove the path if any move in it is more expensive than val + an error 
+        for path in nx.all_simplePaths(mst.generateTree(), actor.currentState, actor.desiredState): #is the tree already generated? # second time go through each path and remove the path if any move in it is more expensive than val + an error
+            for move in path:
+                if move.sum > scaledVal+actor.error:
+                    mst.removePath(actor.currentState, actor.desiredState)
+                    break
         return mst
