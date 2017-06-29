@@ -57,7 +57,8 @@ sampleMove10.howSuccessfulWasMove = 1
 
 list = []
 list.append(sampleMove1,sampleMove2,sampleMove3,sampleMove4,sampleMove5, sampleMove6, sampleMove7, sampleMove8, sampleMove9, sampleMove10)
-
+memory = []
+memory.append(sampleMove1, sampleMove2, sampleMove3, sampleMove4, sampleMove5, sampleMove6)
 mst = MST(currentState = ({"A": 4}, {"B": 5}), desiredState = ({"A": 6}, {"B": 9}), moves = list, maxTime = 7)
 
 #value = (-1,1), weight = (0,1)? (Tony says 0-1 for weight might not be enough)
@@ -82,11 +83,13 @@ class TestPoleListMethod(unittest.TestCase):
         print(actor.error)
         list2.assertEquals(list) #should return same list
 
-    #def test_ParticularHolisticList(self, list, actOnList): k-means? clarification
+    #def test_ParticularHolisticList(self, list, actOnList): k-means? clarification, iovalues
         #ParticularHolisticPole.actOnList(list)
         #ParticularHolisticPole.actOnList.assert_called_with(list)
 
-    #def test_PrimacyRecencyList(self, list, actOnList): event.compareTo--event class?
+    #def test_PrimacyRecencyList(self, list, actOnList): set history and memory manually, need pmesii excel file
+        #history = list
+        #memory = memory
         #PrimacyRecencyPole.actOnList(list)
         #PrimacyRecencyPole.actOnList.assert_called_with(list)
 
@@ -98,11 +101,11 @@ class TestPoleListMethod(unittest.TestCase):
     #def test_EmotionalList(self, list, actOnList):
         #EmotionalPole.actOnList(list)
         #RoutineCreativePole.actOnList.assert_called_with(list)
-        #need to see moveCategories before proceeding
+        #need to see moveCategories before proceeding, no category?
 
     def test_GenerosityList(self, list, actOnList):
         list2 = GenerosityPole.actOnList(list)
-        list2.assertEquals(list.remove(sampleMove2, sampleMove8, sampleMove10, sampleMove4, sampleMove7, sampleMove9)
+        list2.assertEquals(list.remove(sampleMove2, sampleMove8, sampleMove10, sampleMove4, sampleMove7, sampleMove9))
         #move.sum > ( ((abs(self.value) / 2) + 0.5) * self.maxListPrice) + actor.error), remove moves 2, 8, 10, maybe 4, 7, 9 (depends on random resources)
 
 class TestPoleMSTMethod(unittest.TestCase):
@@ -121,7 +124,7 @@ class TestPoleMSTMethod(unittest.TestCase):
         mst2.assertEquals(mst)
         #should return same mst
 
-    #def test_PrimacyRecencyMST(self, mst, actOnMST): need to set history? event.compareTo--event class?
+    #def test_PrimacyRecencyMST(self, mst, actOnMST): need to set history? event.compareTo--event class? need pmesii
         #PrimacyRecencyPole.actOnMST(mst)
         #PrimacyRecencyPole.actOnMST.assert_called_with(mst)
 
@@ -133,7 +136,7 @@ class TestPoleMSTMethod(unittest.TestCase):
     #def test_EmotionalMST(self, mst, actOnMST):
         #mst2 = EmotionalPole.actOnMST(mst)
         #mst2.assertEquals(mst)
-        #need to see moveCategories before proceeding
+        #need to see moveCategories before proceeding, need category
 
     #def test_GenerosityMST(self, mst, actOnMST):
         #mst2 = GenerosityPole.actOnMST(mst)
@@ -142,4 +145,3 @@ class TestPoleMSTMethod(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    
