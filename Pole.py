@@ -288,16 +288,17 @@ class GenerosityPole(Pole):
         mostExpensiveMove = 0 #figure this out
         # first time find most expensive move = val
         # first time find most expensive move = val
-        for path in nx.all_simplePaths(mst.generateTree(), actor.currentState, actor.desiredState):
+        for path in nx.all_simplePaths(mst.tree, actor.currentState):
             for move in path:
                 if move.sum > mostExpensiveMove:
                     mostExpensiveMove = move.sum
         scaledVal = ((abs(self.value) / 2) + 0.5) * mostExpensiveMove #Pole Scaling and Val are calculated at the same time
         # scale pole to [0, 1]
         # val = val * most expensive move
-        for path in nx.all_simplePaths(mst.generateTree(), actor.currentState, actor.desiredState): #is the tree already generated? # second time go through each path and remove the path if any move in it is more expensive than val + an error
+        for path in nx.all_simplePaths(mst.tree, actor.currentState): #is the tree already generated? # second time go through each path and remove the path if any move in it is more expensive than val + an error
             for move in path:
                 if move.sum > scaledVal+actor.error:
                     mst.removePath(actor.currentState, actor.desiredState)
                     break
         return mst
+
