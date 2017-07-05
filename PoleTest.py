@@ -24,25 +24,25 @@ Actor.error = 0.5
 
 #ioParams is None, category None for now, probability 0 to 1
 sampleMove1 = Move(ioParams = -1, probability = 0.1, category = None,
-    resources = resources.items((resource1, [1,3]), (resource2, [1,3]), (resource3, [1,3]), (resource4, [1,3])))
+    resources = {resource1: [1,3], resource2: [1,3], resource3: [1,3], resource4: [1,3]}
 sampleMove2 = Move(ioParams = -.8, probability = 0.1, category = None,
-    resources = resources.items((resource1, [7,9]), (resource2, [7,9]), (resource3, [7,9]), (resource4, [7,9])))
+    resources = {resource1: [7,9], resource2: [7,9], resource3: [7,9], resource4: [7,9]}
 sampleMove3 = Move(ioParams = -.6, probability = 0.9, category = None,
-    resources = resources.items((resource1, [1,3]), (resource2, [1,3]), (resource3, [1,3]), (resource4, [1,3])))
+    resources = {resource1: [1,3], resource2: [1,3], resource3: [1,3], resource4: [1,3]}
 sampleMove4 = Move(ioParams = -.4, probability = 0.9, category = None,
-    resources = resources.items((resource1, [4,6]), (resource2, [4,6]), (resource3, [4,6]), (resource4, [4,6])))
+    resources = {resource1: [4,6], resource2: [4,6], resource3: [4,6], resource4: [4,6]}
 sampleMove5 = Move(ioParams = -.2, probability = 0.2, category = None,
-    resources = resources.items((resource1, [1,3]), (resource2, [1,3]), (resource3, [1,3]), (resource4, [1,3])))
+    resources = {resource1: [1,3], resource2: [1,3], resource3: [1,3], resource4: [1,3]}
 sampleMove6 = Move(ioParams = 0, probability = 0.8, category = None,
-    resources = resources.items((resource1, [1,3]), (resource2, [1,3]), (resource3, [1,3]), (resource4, [1,3])))
+    resources = {resource1: [1,3], resource2: [1,3], resource3: [1,3], resource4: [1,3]}
 sampleMove7 = Move(ioParams = .2, probability = 0.3, category = None,
-    resources = resources.items((resource1, [4,6]), (resource2, [4,6]), (resource3, [4,6]), (resource4, [4,6])))
+    resources = {resource1: [4,6], resource2: [4,6], resource3: [4,6], resource4: [4,6]}
 sampleMove8 = Move(ioParams = .4, probability = 0.7, category = None,
-    resources = resources.items((resource1, [7,9]), (resource2, [7,9]), (resource3, [7,9]), (resource4, [7,9])))
+    resources = {resource1: [7,9], resource2: [7,9], resource3: [7,9], resource4: [7,9]}
 sampleMove9 = Move(ioParams = .6, probability = 0.1, category = None,
-    resources = resources.items((resource1, [4,6]), (resource2, [4,6]), (resource3, [4,6]), (resource4, [4,6])))
+    resources = {resource1: [4,6], resource2: [4,6], resource3: [4,6], resource4: [4,6]}
 sampleMove10 = Move(ioParams = .8, probability = 0.2, category = None,
-    resources = resources.items((resource1, [7,9]), (resource2, [7,9]), (resource3, [7,9]), (resource4, [7,9])))
+    resources = {resource1: [7,9], resource2: [7,9], resource3: [7,9], resource4: [7,9]}
 
 sampleMove1.howSuccessfulWasMove = -1
 sampleMove2.howSuccessfulWasMove = -.8
