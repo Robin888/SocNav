@@ -2,15 +2,16 @@ import numpy as np
 from State import State
 
 class Move(State):
-    def __init__(self, resources, infrastructure, ioParams, probability):
+    def __init__(self, resources, infrastructure, ioValues, probability, category):
         super().__init__(resources, infrastructure)
-        self.ioParams = ioParams
+        self.ioValues = ioValues
         self.probability = probability
         sum = 0
         for key, value in resources.items():
             sum += value
+        self.sum = sum
         self.risk = probability * abs(sum)
-        
+        #add category ?
     '''
     given by monte carlo - gets the state resulting from this move being made by sampling a distribution
     '''
@@ -21,11 +22,7 @@ class Move(State):
     def compare(self, other):
         return np.sum([abs(self.pmesiiVars[i] - other.pmesiiVars[i]) for i in range(0, len(self.pmesiiVars))])
 
-    def getIOValue(self, name):
-        for param in self.ioParams:
-            if param.name == name:
-                return param
-        return None
+
 '''
 move = Move({"PDRLEG": 4}, {"Oil Refineries": 5})
 print(move.getMeasure("Oil Refineries", category = "i"))

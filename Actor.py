@@ -2,7 +2,7 @@ from MST import MST
 
 
 class Actor:
-    def __init__(self, poles, currentState, desiredState, maxTime, error, history, criticalState, allActors):
+    def __init__(self, poles, currentState, desiredState, maxTime, error, history, criticalState, allActors, ioValues):
         self.poles = sorted(poles, key=lambda pole: pole.weight)
         self.currentState = currentState
         self.desiredState = desiredState
@@ -13,6 +13,7 @@ class Actor:
         self.criticalState = criticalState
         self.successfulMoves = []
         self.timeTicks = 0
+        self.ioValues = ioValues
 
         self.polesLeft = []
         self.polesAct = 7 #tells us how many poles should act
