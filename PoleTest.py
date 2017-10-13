@@ -13,135 +13,230 @@
 # is as expected.
 #Note any inconsistencies where methods don't work/don't return what is expected.
 
-from MST import MST
-import Pole
-from Move import Move
 import unittest
-import Pole
-import Actor
 
-Actor.error = 0.5
+from Actor import Actor
+from Move import Move
+from Pole import *
+from State import State
 
-#ioParams is None, category None for now, probability 0 to 1
-sampleMove1 = Move(ioParams = -1, probability = 0.1, category = None,
-    resources = {resource1: [1,3], resource2: [1,3], resource3: [1,3], resource4: [1,3]}
-sampleMove2 = Move(ioParams = -.8, probability = 0.1, category = None,
-    resources = {resource1: [7,9], resource2: [7,9], resource3: [7,9], resource4: [7,9]}
-sampleMove3 = Move(ioParams = -.6, probability = 0.9, category = None,
-    resources = {resource1: [1,3], resource2: [1,3], resource3: [1,3], resource4: [1,3]}
-sampleMove4 = Move(ioParams = -.4, probability = 0.9, category = None,
-    resources = {resource1: [4,6], resource2: [4,6], resource3: [4,6], resource4: [4,6]}
-sampleMove5 = Move(ioParams = -.2, probability = 0.2, category = None,
-    resources = {resource1: [1,3], resource2: [1,3], resource3: [1,3], resource4: [1,3]}
-sampleMove6 = Move(ioParams = 0, probability = 0.8, category = None,
-    resources = {resource1: [1,3], resource2: [1,3], resource3: [1,3], resource4: [1,3]}
-sampleMove7 = Move(ioParams = .2, probability = 0.3, category = None,
-    resources = {resource1: [4,6], resource2: [4,6], resource3: [4,6], resource4: [4,6]}
-sampleMove8 = Move(ioParams = .4, probability = 0.7, category = None,
-    resources = {resource1: [7,9], resource2: [7,9], resource3: [7,9], resource4: [7,9]}
-sampleMove9 = Move(ioParams = .6, probability = 0.1, category = None,
-    resources = {resource1: [4,6], resource2: [4,6], resource3: [4,6], resource4: [4,6]}
-sampleMove10 = Move(ioParams = .8, probability = 0.2, category = None,
-    resources = {resource1: [7,9], resource2: [7,9], resource3: [7,9], resource4: [7,9]}
 
-sampleMove1.howSuccessfulWasMove = -1
-sampleMove2.howSuccessfulWasMove = -.8
-sampleMove3.howSuccessfulWasMove = -.6
-sampleMove4.howSuccessfulWasMove = -.4
-sampleMove5.howSuccessfulWasMove = -.2
-sampleMove6.howSuccessfulWasMove = 0
-sampleMove7.howSuccessfulWasMove = .2
-sampleMove8.howSuccessfulWasMove = .4
-sampleMove9.howSuccessfulWasMove = .6
-sampleMove10.howSuccessfulWasMove = 1
+class TestStringMethods(unittest.TestCase):
 
-list = []
-list.append(sampleMove1,sampleMove2,sampleMove3,sampleMove4,sampleMove5, sampleMove6, sampleMove7, sampleMove8, sampleMove9, sampleMove10)
-memory = []
-memory.append(sampleMove1, sampleMove2, sampleMove3, sampleMove4, sampleMove5, sampleMove6)
-mst = MST(currentState = ({"A": 4}, {"B": 5}), desiredState = ({"A": 6}, {"B": 9}), moves = list, maxTime = 7)
+    def test_rationalityPole(self):
+        move1 = Move({"test1": 5, "test2": 10, "test3": 20}, None, [], .5, None)
+        move2 = Move({"test1": 100, "test2": 200, "test3": 300}, None, [], .5, None)
+        move3 = Move({"test1": 1, "test2": 1, "test3": 1}, None, [], .5, None)
+        move4 = Move({"test1": -10, "test2": 10, "test3": -100}, None, [], .5, None)
+        move5 = Move({"test1": 500, "test2": 1000, "test3": 10000}, None, [], .5, None)
+        move0 = Move({"test1": 0, "test2": 0, "test3": 0}, None, [], 0, None)
+        moves = [move1, move2, move3, move4, move5, move0]
+        test_polelow = RationalityPole(-1,1)
+        test_polemiddle= RationalityPole(-.5, 1)
+        test_polehigh = RationalityPole(1, 1)
+        actorlow = Actor([test_polelow], None, None, None, 0.05, None, None, [], None)
+        actormiddle = Actor([test_polemiddle], None, None, None, 0.05, None, None, [], None)
+        actorhigh = Actor([test_polehigh], None, None, None, 0.05, None, None, [], None)
 
-#value = (-1,1), weight = (0,1)? (Tony says 0-1 for weight might not be enough)
-RationalityPole = RationalityPole(.3, .5)
-RiskPole = RiskPole(.5, .5)
-ParticularHolisticPole = ParticularHolisticPole(-.4, .4)
-PrimacyRecencyPole = PrimacyRecencyPole(-.2, .2)
-RoutineCreativePole = RoutineCreativePole(.1, .1)
-EmotionalPole = EmotionalPole(.6, .6)
-GenerosityPole = GenerosityPole(.4,.4)
+        moveslow = test_polelow.actOnList(moves, actorlow)
+        movesmiddle = test_polemiddle.actOnList(moves, actormiddle)
+        moveshigh = test_polehigh.actOnList(moves, actorhigh)
+        self.assertEqual(len(moveshigh), 6)
+        self.assertEqual(len(moveslow), 0)
+        self.assertTrue(len(movesmiddle) <4)
 
-#According to Tony: can test = RationalityPole-yes, RiskPole-yes, RoutineCreativePole-maybe, everything else-no
+    def test_riskPole(self):
+        move1 = Move({"test1": 5, "test2": 10, "test3": 20}, None, [], .5, None)
+        move2 = Move({"test1": 100, "test2": 200, "test3": 300}, None, [], .5, None)
+        move3 = Move({"test1": 1, "test2": 1, "test3": 1}, None, [], .5, None)
+        move4 = Move({"test1": -10, "test2": 10, "test3": -100}, None, [], .5, None)
+        move5 = Move({"test1": 500, "test2": 1000, "test3": 10000}, None, [], .5, None)
+        move0 = Move({"test1": 0, "test2": 0, "test3": 0}, None, [], 0, None)
+        moves = [move1, move2, move3, move4, move5, move0]
+        test_polelow = RiskPole(-1, 1)
+        test_polemiddle = RiskPole(0, 1)
+        test_polehigh = RiskPole(.99, 1)
+        actorlow = Actor([test_polelow], None, None, None, 0.05, None, None, [], None)
+        actormiddle = Actor([test_polemiddle], None, None, None, 0.05, None, None, [], None)
+        actorhigh = Actor([test_polehigh], None, None, None, 0.05, None, None, [], None)
+        moveslow = test_polelow.actOnList(moves, actorlow)
+        movesmiddle = test_polemiddle.actOnList(moves, actormiddle)
+        moveshigh = test_polehigh.actOnList(moves, actorhigh)
 
-class TestPoleListMethod(unittest.TestCase):
-    def test_RationalityList(self, list, actOnList):
-        list2 = RationalityPole.actOnList(list)
-        list2.assertEquals(list)
-        #len(nl)*(self.value + actor.error) <= move.ioParams.value = remove, remove moves, no moves will be removed (multiply by len(nl) vs ioParams = [-1,1]
+        self.assertTrue(actorlow.error <1 )
+        print("low error", actorlow.resourcesError)
+        #print("high error", actorhigh.error)
+        print("high error" + str(actorhigh.resourcesError))
+        print("middle error",actormiddle.resourcesError)
+        #print(actormiddle.error)
+        print("done")
 
-    def test_RiskList(self, list, actOnList):
-        list2 = RiskPole.actOnList(list)
-        print(actor.error)
-        list2.assertEquals(list) #should return same list
+    def test_ParticularHolisticPole(self):
 
-    #def test_ParticularHolisticList(self, list, actOnList): k-means? clarification, iovalues
-        #ParticularHolisticPole.actOnList(list)
-        #ParticularHolisticPole.actOnList.assert_called_with(list)
+        move1 = Move({"test1": 5, "test2": 10, "test3": 20}, None, [0,0,0,0], .5, None)
+        move2 = Move({"test1": 100, "test2": 200, "test3": 300}, None, [15,20,14,19], .5, None)
+        move3 = Move({"test1": 1, "test2": 1, "test3": 1}, None, [200,-350,900,3], .5, None)
+        move4 = Move({"test1": -10, "test2": 10, "test3": -100}, None, [39,189,289,398], .5, None)
+        move5 = Move({"test1": 500, "test2": 1000, "test3": 10000}, None, [10,20,30,40], .5, None)
+        move0 = Move({"test1": 0, "test2": 0, "test3": 0}, None, [1000,1000,1000,1000], 0, None)
+        moves = [move1, move2, move3, move4, move5, move0]
+        test_polelow = ParticularHolisticPole(-1, 1)
+        test_polemiddle = ParticularHolisticPole(0, 1)
+        test_polehigh = ParticularHolisticPole(1, 1)
+        actorlow = Actor([test_polelow], None, None, None, 0.05, None, None, [], [0,0,0,0])
+        actormiddle = Actor([test_polemiddle], None, None, None, 0.05, None, None, [], [0,0,0,0])
+        actorhigh = Actor([test_polehigh], None, None, None, 0.05, None, None, [], [0,0,0,0])
+        moveslow = test_polelow.actOnList(moves, actorlow)
+        movesmiddle = test_polemiddle.actOnList(moves, actormiddle)
+        moveshigh = test_polehigh.actOnList(moves, actorhigh)
 
-    #def test_PrimacyRecencyList(self, list, actOnList): set history and memory manually, need pmesii excel file
-        #history = list
-        #memory = memory
-        #PrimacyRecencyPole.actOnList(list)
-        #PrimacyRecencyPole.actOnList.assert_called_with(list)
+        self.assertTrue(len(moveslow) !=6)
+        self.assertTrue(len(moveshigh)>=5)
 
-    def test_RoutineCreativeList(self, list, actOnList):
-        list2 = RoutineCreativePole.actOnList(list)
-        list2.assertEquals(list.remove(sampleMove6, sampleMove7, sampleMove8, sampleMove9, sampleMove10))
-        #actor.howSuccessfulWasMove(move) > (actor.howSuccessfulWasMove(move) summed over all moves)/len(oldMoves) = remove moves 6, 7, 8, 9, 10
 
-    #def test_EmotionalList(self, list, actOnList):
-        #EmotionalPole.actOnList(list)
-        #RoutineCreativePole.actOnList.assert_called_with(list)
-        #need to see moveCategories before proceeding, no category?
+    def test_PrimacyRecencyPole(self):
+        test_polelow = PrimacyRecencyPole(-1, 1)
+        test_polemiddle = PrimacyRecencyPole(0, 1)
+        test_polehigh = PrimacyRecencyPole(1, 1)
+        #high primacy
+        actorlow = Actor([test_polelow], State({"test1":1, "test2": 0, "test3": 0, "test4": 0}, None), None, None,.05, None,None, [], [])
+        actormiddle = Actor([test_polemiddle], State({"test1":1, "test2": 0, "test3": 0, "test4": 0},None), None, None,.05, None,None, [], [])
+        #high recency
+        actorhigh = Actor([test_polehigh], State({"test1":1, "test2": 0, "test3": 0, "test4": 0}, None), None, None,.05, None,None, [], [])
 
-    def test_GenerosityList(self, list, actOnList):
-        list2 = GenerosityPole.actOnList(list)
-        list2.assertEquals(list.remove(sampleMove2, sampleMove8, sampleMove10, sampleMove4, sampleMove7, sampleMove9))
-        #move.sum > ( ((abs(self.value) / 2) + 0.5) * self.maxListPrice) + actor.error), remove moves 2, 8, 10, maybe 4, 7, 9 (depends on random resources)
+        event1 = Event(None, None,Move({"test1":1, "test2": 1, "test3": 1, "test4": 1}, None, [], .5, None),0 )
+        event2 = Event(None, None, Move({"test1":1, "test2": 1, "test3": 1, "test4": 2}, None, [], .5, None),0)
+        event3 = Event(None, None, Move({"test1":.96, "test2": 0, "test3": 0, "test4": 0}, None, [], .5, None),0)
+        event4 = Event(None, None, Move({"test1":0, "test2": 0, "test3": 0, "test4": 0}, None, [], .5, None),0)
+        event5 = Event(None, None, Move({"test1":1, "test2": 1, "test3": 1, "test4": 2}, None, [], .5, None),0)
+        event6 = Event(None, None, Move({"test1":101, "test2": 100, "test3": 100, "test4": 100}, None, [], .5, None),0)
+        event7 = Event(None, None, Move({"test1":501, "test2": 500, "test3": 500, "test4": 500}, None, [], .5, None),0)
+        event8 = Event(None, None, Move({"test1":1, "test2": 1, "test3": 0, "test4": 0}, None, [], .5, None),0)
+        moves = []
+        history = [event1, event2, event3, event4]
+        memory = [event5, event6, event7, event8]
+        actorlow.history = history
+        actorhigh.history = history
+        actormiddle.history = history
+        actorlow.memory=memory
+        actormiddle.memory = memory
+        actorhigh.memory = memory
 
-class TestPoleMSTMethod(unittest.TestCase):
-    def test_RationalityMST(self, mst, actOnMST):
-        mst2 = RationalityPole.actOnMST(mst)
-        mst2.assertEquals(mst.remove(sampleMove1,sampleMove2, sampleMove5, sampleMove7, sampleMove8, sampleMove9, sampleMove10))
-        #move.probability < (self.value + actor.error) (= .3 + .5 = .8) removed, sampleMoves 1, 2, 5, 7, 8, 9, 10 should be removed
+        print("MOVES LOW")
+        moveslow = test_polelow.actOnList(moves, actorlow)
+        print("MOVES MID:")
+        movesmiddle = test_polemiddle.actOnList(moves, actormiddle)
+        print("MOVES HIGH:")
+        moveshigh = test_polehigh.actOnList(moves, actorhigh)
+        # print(moveslow == movesmiddle==moveshigh)
+        # print(len(movesmiddle))
+        # print(moveshigh[0].resources.items())
 
-    def test_RiskMST(self, mst, actOnMST):
-        mst2 = RiskPole.actOnMST(mst)
-        mst2.assertEquals(mst.remove(sampleMove1))
-        #move.risk < self.value + actor.error (.5 + .5 = 1) removed, sampleMove1 should be removed
 
-    def test_ParticularHolisticMST(self, mst, actOnMST):
-        mst2 = ParticularHolisticPole.actOnMST(mst)
-        mst2.assertEquals(mst)
-        #should return same mst
+    def test_RoutineCreativePole(self):
+        test_polelow = RoutineCreativePole(-.75, 1)
+        test_polemiddle = RoutineCreativePole(0, 1)
+        test_polehigh = RoutineCreativePole(1, 1)
+        # high primacy
+        actorlow = Actor([test_polelow], State({"test1":1, "test2": 1, "test3": 1, "test4": 1}, None),None, None, .1,
+                         None, None, [], [])
+        actormiddle = Actor([test_polemiddle], State({"test1":1, "test2": 1, "test3": 1, "test4": 1}, None),
+                            None, None, .1, None, None, [], [])
+        # high recency
+        actorhigh = Actor([test_polehigh], State({"test1":1, "test2": 1, "test3": 1, "test4": 1}, None), None,None, .1, None, None, [], [])
 
-    #def test_PrimacyRecencyMST(self, mst, actOnMST): need to set history? event.compareTo--event class? need pmesii
-        #PrimacyRecencyPole.actOnMST(mst)
-        #PrimacyRecencyPole.actOnMST.assert_called_with(mst)
+        event1 = Event(None, None,Move({"test1":1, "test2": 1, "test3": 1, "test4": 1}, None, [], .5, None),0 )
+        event2 = Event(None, None, Move({"test1":0, "test2": 0, "test3": 0, "test4": 0}, None, [], .5, None),0)
+        # event3 = Event(None, None, Move({"test1":100, "test2": 100, "test3": 200, "test4": 300}, None, [], .5, None),0)
+        # event4 = Event(None, None, Move({"test1":0, "test2": 0, "test3": 0, "test4": 1}, None, [], .5, None),0)
+        # event5 = Event(None, None, Move({"test1":1, "test2": 1, "test3": 1, "test4": 2}, None, [], .5, None),0)
+        # event6 = Event(None, None, Move({"test1":101, "test2": 100, "test3": 100, "test4": 100}, None, [], .5, None),0)
+        # event7 = Event(None, None, Move({"test1":501, "test2": 500, "test3": 500, "test4": 500}, None, [], .5, None),0)
+        # event8 = Event(None, None, Move({"test1":1, "test2": 1, "test3": 0, "test4": 0}, None, [], .5, None),0)
 
-    def test_RoutineCreativeMST(self, mst, actOnMST):
-        mst2 = RoutineCreativePole.actOnMST(mst)
-        mst2.assertEquals(mst.remove(sampleMove5,sampleMove3,sampleMove7))
-        #rnum > (self.value + actor.error) (.1 + .5 = .6) removed, randomly removes moves, I picked randomly here
 
-    #def test_EmotionalMST(self, mst, actOnMST):
-        #mst2 = EmotionalPole.actOnMST(mst)
-        #mst2.assertEquals(mst)
-        #need to see moveCategories before proceeding, need category
+        moves = [Move({"test1":1, "test2": 1, "test3": 1, "test4": 1}, None, [], .5, None),
+                     Move( {"test1": 0, "test2": 0, "test3": 0, "test4": 0}, None, [], .5, None),
+                    Move({"test1": 1000, "test2": 1000, "test3": 1000, "test4": 1000}, None, [], .5, None),
+                 Move({"test1": .75, "test2": .75, "test3": .75, "test4": .75}, None, [], .5, None),
+                 Move({"test1": .89, "test2":.99, "test3": .99, "test4": 1}, None, [], .5, None)]
+        successfulMoves = [event1, event2] #,event3, event4, event5, event6, event7, event8]
+        actorlow.timeTicks = 8
+        actormiddle.timeTicks = 8
+        actorhigh.timeTicks = 8
+        actorlow.successfulMoves = successfulMoves
+        actorhigh.successfulMoves = successfulMoves
+        actormiddle.successfulMoves = successfulMoves
+        moveslow = test_polelow.actOnList(moves, actorlow )
+        movesmiddle = test_polemiddle.actOnList(moves, actormiddle)
+        moveshigh = test_polehigh.actOnList(moves, actorhigh)
+        print("PRINTING MOVES LOW MIDDLE HIGH")
+        print(len(moveslow))
+        print(len(movesmiddle))
+        print(len(moveshigh))
+    def test_EmotionalPole(self):
+        #need to make categories and see if they add moves
+        #pretty much only need to make actors, poles, and moves w only categories
+        test_polelow = EmotionalPole(-.21, 1)
+        test_polemiddle = EmotionalPole(0, 1)
+        test_polehigh = EmotionalPole(.6, 1)
+        actorlow = Actor([test_polelow], None, None, None, 0.05, None, None, [], [])
+        actormiddle = Actor([test_polemiddle], None, None, None, 0.05, None, None, [], [])
+        actorhigh = Actor([test_polehigh], None, None, None, 0.05, None, None, [], [])
 
-    #def test_GenerosityMST(self, mst, actOnMST):
-        #mst2 = GenerosityPole.actOnMST(mst)
-        #mst2.assertEquals(mst)
-        #Incomplete, can't test yet
+        move1= Event(None, None, Move({"t1":0}, None, [], .5,'Engage in diplomatic cooperation'), 0)
+
+        move2 =Event(None, None, Move({"t1":0}, None, [], .5, 'Engage in in material cooperation'), 0)
+        move3 = Event(None, None, Move({"t1":0}, None, [], .5, 'Appeal'), 0)
+        move4 = Event(None,None, Move({"t1":0}, None, [], .5, 'Build economic infrastructure'),0)
+        move5 = Event(None,None, Move({"t1":0}, None, [], .5, 'Build energy infrastructure'),0)
+        move6 = Event(None, None, Move({"t1":0},  None,[], .5, 'Build military infrastructure'), 0)
+        moveneg = Event(None, None,Move({"t1":0}, None, [], .5,'Assault') ,0)
+        moveneg2 = Event(None,None, Move({"t1":0}, None, [], .5, 'Coerce'), 0)
+        history = [move1, move2,move3,move4,move5,move6, moveneg, moveneg2]
+        actorlow.history = history
+        actormiddle.history= history
+        actorhigh.history = history
+        moves = []
+        moveslow = test_polelow.actOnList(moves,actorlow)
+        movesmiddle = test_polemiddle.actOnList(moves, actormiddle)
+        moveshigh = test_polehigh.actOnList(moves, actorhigh)
+        print("emotionalpole move length")
+        print(len(moveslow))
+        print(len(movesmiddle))
+        print(len(moveshigh))
+
+    def test_GenerosityPole(self):
+        test_polelow = GenerosityPole(-1, 1)
+        test_polemiddle = GenerosityPole(0, 1)
+        test_polehigh = GenerosityPole(1, 1)
+        actorlow = Actor([test_polelow], None, None, None, .05,None, None, [], [])
+        actormiddle = Actor([test_polemiddle], None,None, None, .05, None, None, [], [])
+
+        actorhigh = Actor([test_polehigh], None, None, None, .05, None, None, [], [])
+
+        move1 = Move({"test1": 100, "test2": 100, "test3": 100}, None, [], .5, None)
+        move2 = Move({"test1": 200, "test2": 200, "test3": 200}, None, [], .5, None)
+        move3 = Move({"test1": 0, "test2": 0, "test3": 0}, None, [], .5, None)
+        move4 = Move({"test1": 1000, "test2": 1000, "test3": 1000}, None, [], .5, None)
+        move5 = Move({"test1": 500, "test2": 1000, "test3": 1000}, None, [], .5, None)
+        moves = [move1,move2,move3,move4,move5]
+        moveslow = test_polelow.actOnList(moves,actorlow)
+        movesmiddle = test_polemiddle.actOnList(moves, actormiddle)
+        moveshigh = test_polehigh.actOnList(moves, actorhigh)
+        self.assertTrue(move3 in moveslow)
+        self.assertTrue(len(moveslow)==1)
+        self.assertTrue(len(moveshigh)==5)
+        self.assertTrue((move4 not in movesmiddle))
+
+
+
+
+
 
 if __name__ == '__main__':
+
+
+
     unittest.main()
+

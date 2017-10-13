@@ -1,20 +1,68 @@
 from MST import MST
 
 
-class Actor:
-    def __init__(self, poles, currentState, desiredState, maxTime, error, history, criticalState):
+class Actor():
+    def __init__(self, poles, currentState, desiredState, maxTime, error, history, criticalState, allActors, ioValues):
         self.poles = sorted(poles, key=lambda pole: pole.weight)
         self.currentState = currentState
         self.desiredState = desiredState
         self.maxTime = maxTime
-        self.error = error
+        self._error = error
         self.history = history
         self.memory = []
         self.criticalState = criticalState
         self.successfulMoves = []
         self.timeTicks = 0
+        self.ioValues = ioValues
+        self.resourcesError = 0
+
         self.polesLeft = []
         self.polesAct = 7 #tells us how many poles should act
+
+        if self in allActors:
+            self.otherActors = allActors.remove(self)
+
+
+    @property
+    def error(self):
+        return self._error
+    @error.setter
+    def error(self, val):
+        self._error = val if val < 1 else 1
+
+
+    '''
+    Compare self to others by poleValues. If other actors are similar within error bound then look through their history and memory, comparing states to the current state.
+    if similar and if move was successful then add that move to current list of moves being considered for this actor
+    returns list of moves to be added to moves being currently considered
+    '''
+    def compareToOthersByPoles(self):
+        currentEvent = Event(self.currentState, self.desiredState, None)
+        ret = []
+        def checkMoves(eventList):
+            retList = []
+            for event in eventList:
+                #TODO: fix up actor.error
+                if event.compare(event, currentEvent) < self.error and event.success < 0:
+                    retList.append(event.move)
+            return retList
+
+        for actor in self.otherActors:
+            ret += checkMoves(actor.history)
+            ret += checkMoves(actor.memory)
+        return ret
+
+    '''
+    Compare self to others by desired end state. Results could be competitive, conflicting, or cooperative.
+    Go through all other actors. Check their desired end state. 
+    If they are polar opposites then this is conflicting. 
+    If they are similar but not same resources, then they are cooperative. 
+    If trying to own the same resources, then this is competitive.
+    Adjust IO values based on this result.
+    def compareToOthersByDesiredEndState():
+        for actor in self.otherActors:
+            difference = 
+    '''
 
     '''
     orders possible moves based on ideal move (k-means)
@@ -50,8 +98,9 @@ class Actor:
         remove = set()
         for move in moves:
             tempState = self.applyPossibleMove(move)
-            for resource in tempState.pmesiiVars:
-                if resource < -self.error:
+            for resource in tempState.resources:
+                if resource < -self.resourceError:
+                    error = self.resourcesError * max([resource for resource in self.currentState.resources])
                     remove.add(move)
         moves = [i for i in moves if i not in remove]
         return moves
@@ -64,7 +113,7 @@ class Actor:
     negative means the move moved the current state closer to the desired state than before
     '''
     def howSuccessfulWasMove(self, event):
-        return (self.currentState - self.desiredState) - (event.currentState - event.desiredState) #is this a value??
+        return (self.currentState - self.desiredState) - (event.currentState - event.desiredState)
 
     '''
     chooses the move to be made by thisactor
@@ -77,8 +126,8 @@ class Actor:
         for event in previousEvents:
             event.success = self.howSuccessfulWasMove(event)
             if self.howSuccessfulWasMove(event) < 0:
-                self.successfulMoves.append(event.move)
-
+                self.successfulMoves.append(event)
+        self.successfulMoves = sorted(self.successfulMoves, key = lambda event: event.success)
         # TODO
         #check if resources are critically low in the current state
         for i in range(0, len(self.currentState)):
@@ -105,10 +154,9 @@ class Actor:
     '''
 
     def applyPossibleMove(self, move):
-        # TODO
         state = self.currentState
-        for i in range(0, len(move.pmesiiVars)):
-            state.pmesiiVars[i] += move.pmesiiVars[i]
+        for i in range(0, len(move.resources)):
+            state.resources[i] += move.resources[i]
         return state
 
 
@@ -121,7 +169,6 @@ class Actor:
 
     '''
    The poles will act again here, on the MST. The order in which these will act depends on the weights of the poles.
-
     '''
 
     def pH(self, mst):
@@ -141,24 +188,30 @@ class Actor:
     #TODO: remember to reset it after! Python question
     def trigger(self, name, value):
         self.desiredState.set(name, value)
-        # do something else
+        #do something else
 
 '''
 This class represents an event in an actor's history/memory. It records the state that the actor was in, and the move that was made from that state
 '''
 class Event:
-    def __init__(self, currentState, desiredState, move):
+    def __init__(self, currentState, desiredState, move, success):
         self.currentState = currentState
         self.desiredState = desiredState
         self.move = move
+        self.success = success
 
     '''
     Compute how different two events are based on the state. Equal states will have 0 difference, so compare will return 0.
     '''
     @staticmethod
     def compare(event1, event2):
-        difference = 0
-        for i in range(0, len(event1.state.pmesiiVars)):
-            difference += abs(event1.state.pmesiiVars[i] - event2.state.pmesiiVars[i])
+        return Event.compareResources(event1.state.resources, event2.state.resources)
 
+    #TODO: make dictionary instead of list
+    @staticmethod
+    def compareResources(a, b):
+        difference = 0
+        for item in a.keys():
+            difference += abs(a.get(item) - b.get(item))
         return difference
+
