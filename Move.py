@@ -11,7 +11,7 @@ class Move(State):
             sum += value
         self.sum = sum
         self.risk = probability * abs(sum)
-        #add category ?
+        self.category = category
     '''
     given by monte carlo - gets the state resulting from this move being made by sampling a distribution
     '''
@@ -20,7 +20,7 @@ class Move(State):
         pass
 
     def compare(self, other):
-        return np.sum([abs(self.pmesiiVars[i] - other.pmesiiVars[i]) for i in range(0, len(self.pmesiiVars))])
+        return np.sum([abs(self.resources[i] - other.resources[i]) for i in range(0, len(self.resources))])
 
 
 '''
