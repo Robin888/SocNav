@@ -65,7 +65,7 @@ class RiskPole(Pole):
     def actOnMST(self, mst, actor):
         # risk: a more risky actor will consider moves that have a higher risk associated with them
         # work with mst
-        moves = mst.getMoves(actor.currentState) # get all moves available from current state
+        moves = mst.getMoves() # get all moves available from current state
         temp = max([v for k,v in actor.currentState.resources.items()])
         for move in moves:
             if move.risk < (((self.value+1)/2.0) + actor.error) * temp:  # remove all moves that have a higher risk than the value of the pole + an error term with mst.removeMove(move)
@@ -188,7 +188,7 @@ class RoutineCreativePole(Pole):
 
     def actOnMST(self, mst, actor):
         # routine vs creative: creative actor considers more random moves.
-        moves = mst.getMoves(actor.currentState)  # get all moves available from current state
+        moves = mst.getMoves()  # get all moves available from current state
         for move in moves:  # for every move going from the current state:
             rnum = random.uniform(0,1) # do you think numpy is better at this? -- obtain a random number within bounds [0, 1). if it is more than the value of the routine/creative pole + an error Term:
             if rnum > ((self.value+ actor.error+1)/2.0 ):
@@ -302,7 +302,6 @@ class GenerosityPole(Pole):
         # go through each path on the mst (recursively) (two passes)
         mostExpensiveMove = 0 #figure this out
         # first time find most expensive move = val
-        # first time find most expensive move = val
         for path in nx.all_simple_paths(mst.tree, actor.currentState, actor.desiredState):
             for move in path:
                 if move.sum > mostExpensiveMove:
@@ -310,10 +309,12 @@ class GenerosityPole(Pole):
         scaledVal = ((abs(self.value) / 2) + 0.5) * mostExpensiveMove #Pole Scaling and Val are calculated at the same time
         # scale pole to [0, 1]
         # val = val * most expensive move
+        #Todo It should be enough to just remove that move from the MST.graph object with mst.graph.remove_edge()
+
         for path in nx.all_simple_paths(mst.tree, actor.currentState, actor.desiredState): #is the tree already generated? # second time go through each path and remove the path if any move in it is more expensive than val + an error
             for move in path:
                 if move.sum > scaledVal:
-                    mst.removePath(actor.currentState, actor.desiredState)
+                    mst.removeMove(actor.currentState, actor.desiredState)
                     break
         return mst
 
