@@ -59,7 +59,7 @@ def generate_resource_vocab(moves):
 
 def euclidean_distance(a, b):
 	distance = 0.0
-	for i in xrange(0, len(a)):
+	for i in range(0, len(a)):
 		distance += np.linalg.norm(a[i] - b[i])
 	return np.sqrt(distance)
 

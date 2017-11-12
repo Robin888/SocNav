@@ -79,6 +79,7 @@ class Actor():
         # add honor pole
         # TODO order the moves based on ideal move using k-means, keeping track of how far each move is from the centroid
 
+
         orderedMoves = []
         # TODO sort the poles in here
         poles = self.poles
