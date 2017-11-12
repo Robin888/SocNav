@@ -1,8 +1,12 @@
-from MST import MST
+from dm.MST import MST
+from dm import IO
+from dm import risk_calculation
+from dm.Event import Event
 
 
 class Actor():
-    def __init__(self, poles, currentState, desiredState, maxTime, error, history, criticalState, allActors, ioValues):
+    def __init__(self, poles, currentState, desiredState, maxTime, error, history, criticalState, allActors, ioValues,
+                 end_io_state):
         self.poles = sorted(poles, key=lambda pole: pole.weight)
         self.currentState = currentState
         self.desiredState = desiredState
@@ -17,32 +21,33 @@ class Actor():
         self.resourcesError = 0
 
         self.polesLeft = []
-        self.polesAct = 7 #tells us how many poles should act
+        self.polesAct = 7  # tells us how many poles should act
 
         if self in allActors:
             self.otherActors = allActors.remove(self)
-
+        self.end_io_state = end_io_state
 
     @property
     def error(self):
         return self._error
+
     @error.setter
     def error(self, val):
         self._error = val if val < 1 else 1
-
 
     '''
     Compare self to others by poleValues. If other actors are similar within error bound then look through their history and memory, comparing states to the current state.
     if similar and if move was successful then add that move to current list of moves being considered for this actor
     returns list of moves to be added to moves being currently considered
     '''
+
     def compareToOthersByPoles(self):
         currentEvent = Event(self.currentState, self.desiredState, None)
         ret = []
+
         def checkMoves(eventList):
             retList = []
             for event in eventList:
-                #TODO: fix up actor.error
                 if event.compare(event, currentEvent) < self.error and event.success < 0:
                     retList.append(event.move)
             return retList
@@ -72,17 +77,11 @@ class Actor():
     To see specific actions of poles see the actOnList method of the poles.
     returns list of possible moves, ordered.
     '''
-    # TODO: restructure to use set logic instead of feeding the same list back and forth - and all of them at the end.
-    # make actor history and memory for IO - populate "history", memory is populated during
-    def orientation(self):
-        # alter all of the poles (possibly), remember to put back
-        # add honor pole
-        # TODO order the moves based on ideal move using k-means, keeping track of how far each move is from the centroid
 
-        orderedMoves = []
-        # TODO sort the poles in here
-        poles = self.poles
-        # ordered by distance from centroid.
+    def orientation(self):
+        orderedMoves = IO.io(self.ioValues)
+        poles = sorted(self.poles, key=lambda pole: pole.weight)
+
         for pole in poles:
             orderedMoves = pole.actOnList(orderedMoves, self)
         return orderedMoves
@@ -99,7 +98,7 @@ class Actor():
         for move in moves:
             tempState = self.applyPossibleMove(move)
             for resource in tempState.resources:
-                if resource < -self.resourceError:
+                if resource < -self.resourcesError:
                     error = self.resourcesError * max([resource for resource in self.currentState.resources])
                     remove.add(move)
         moves = [i for i in moves if i not in remove]
@@ -112,11 +111,12 @@ class Actor():
     Positive means the move moved the current state further from the desired state.
     negative means the move moved the current state closer to the desired state than before
     '''
+
     def howSuccessfulWasMove(self, event):
         return (self.currentState - self.desiredState) - (event.currentState - event.desiredState)
 
     '''
-    chooses the move to be made by thisactor
+    chooses the move to be made by this actor
     appends the move and to memory of the actor.
     returns the Move that is chosen by this actor
     '''
@@ -127,23 +127,27 @@ class Actor():
             event.success = self.howSuccessfulWasMove(event)
             if self.howSuccessfulWasMove(event) < 0:
                 self.successfulMoves.append(event)
-        self.successfulMoves = sorted(self.successfulMoves, key = lambda event: event.success)
-        # TODO
-        #check if resources are critically low in the current state
+        self.successfulMoves = sorted(self.successfulMoves, key=lambda event: event.success)
+
+        # check if resources are critically low in the current state
         for i in range(0, len(self.currentState)):
             if self.currentState[i] < self.criticalState[i]:
                 self.trigger(self.criticalState[i].name, self.criticalState[i].value)
 
         orderedMoves = self.orientation()
         cutResources = self.cutByResources(orderedMoves)
+
+        risk_calculation.assign_probabilities(orderedMoves)
+        risk_calculation.calculate_risks(self.end_io_state, orderedMoves)
+
         mst = MST(self.currentState, self.desiredState, cutResources, self.maxTime)
         mst = self.pH(mst)
         moves = mst.getMoves()
 
         for result in moves:
-            event = Event(self.currentState,self.desiredState, result)
+            event = Event(self.currentState, self.desiredState, result, None)
             event.timeTick = self.timeTicks
-            self.addToMemory(result)
+            self.memory.append(event)
 
         self.timeTicks += 1
         return moves
@@ -159,59 +163,26 @@ class Actor():
             state.resources[i] += move.resources[i]
         return state
 
-
-    '''
-    add a move to this actor's memory
-    '''
-
-    def addToMemory(self, move):
-        self.memory.append(Event(self.currentState, move))
-
     '''
    The poles will act again here, on the MST. The order in which these will act depends on the weights of the poles.
     '''
 
     def pH(self, mst):
         poles = self.poles
-        #sort poles based on weight
+        # sort poles based on weight
         for pole in poles:
             if self.polesAct == 0:
                 break
             self.polesLeft = poles[poles.index(pole):]
             mst = pole.actOnMST(mst, self)
-            self.polesAct-=1
+            self.polesAct -= 1
         return mst
 
     '''
     trigger a move based on critically low values. temporarily set the desired state to one that will fix the currently lacking resource. Maybe we can make a stack of states that an actor needs to achieve
     '''
-    #TODO: remember to reset it after! Python question
+
+    # TODO: remember to reset it after! Python question
     def trigger(self, name, value):
         self.desiredState.set(name, value)
-        #do something else
-
-'''
-This class represents an event in an actor's history/memory. It records the state that the actor was in, and the move that was made from that state
-'''
-class Event:
-    def __init__(self, currentState, desiredState, move, success):
-        self.currentState = currentState
-        self.desiredState = desiredState
-        self.move = move
-        self.success = success
-
-    '''
-    Compute how different two events are based on the state. Equal states will have 0 difference, so compare will return 0.
-    '''
-    @staticmethod
-    def compare(event1, event2):
-        return Event.compareResources(event1.state.resources, event2.state.resources)
-
-    #TODO: make dictionary instead of list
-    @staticmethod
-    def compareResources(a, b):
-        difference = 0
-        for item in a.keys():
-            difference += abs(a.get(item) - b.get(item))
-        return difference
-
+        # do something else

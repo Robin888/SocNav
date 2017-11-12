@@ -1,7 +1,6 @@
 import csv
 import json
 import numpy as np
-from Move import Move_Object 
 
 """
 General Function for reading in the moves.csv (converted from XLSX).
@@ -22,7 +21,7 @@ def read_moves(filename):
 		for move_row in move_rows: 
 			move = {}
 			if move_row[0] != "":
-				for i in xrange(0, n_col):
+				for i in range(0, n_col):
 					move[move_parts[i]] = move_row[i]
 				moves.append(move)
 	return moves
