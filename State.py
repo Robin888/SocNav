@@ -4,14 +4,15 @@ class State:
     'Move class to express CAMEO moves in terms of Resources and Infrastructure'
     """
     Attributes:
-        resources: a dictionary expressing the change in resources caused by the move
-        infrastructure: a dictionary expressing the change in infrastructure caused by the move
+        resources: a dictionary expressing the resource state
+        infrastructure: a dictionary expressing the infrastructure state
     """
 
     def __init__(self, resources, infrastructure):
         self.resources = resources
         self.infrastructure = infrastructure
-
+    def __str__(self):
+        return (str(self.resources) + " " + str(self.infrastructure))
     """
     Reads in the values of each resource measure and adds it to the resource dictionary
     """
@@ -59,3 +60,5 @@ class State:
                 self.resources[measure] = value
             elif (category == "i"):
                 self.infrastructure[measure] = value
+
+    __repr__ = __str__

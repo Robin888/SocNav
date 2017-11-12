@@ -16,8 +16,16 @@ class Move(State):
     given by monte carlo - gets the state resulting from this move being made by sampling a distribution
     '''
     def getPossibleState(self, curState):
-        # TODO:
-        pass
+        # TODO: DO THIS
+        resources = {}
+        for i in curState.resources:
+            resources[i] = curState.resources[i] - self.resources[i]
+
+        infrastructure = {}
+
+        for i in curState.infrastructure:
+            infrastructure[i] = curState.infrastructure[i] - self.infrastructure[i]
+        return State(resources, infrastructure)
 
     def compare(self, other):
         return np.sum([abs(self.resources[i] - other.resources[i]) for i in range(0, len(self.resources))])
