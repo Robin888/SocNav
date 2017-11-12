@@ -1,8 +1,10 @@
-from MST import MST
-
+from dm.MST import MST
+from dm import IO
+from dm import risk_calculation
+from dm.Event import Event
 
 class Actor():
-    def __init__(self, poles, currentState, desiredState, maxTime, error, history, criticalState, allActors, ioValues):
+    def __init__(self, poles, currentState, desiredState, maxTime, error, history, criticalState, allActors, ioValues, end_io_state):
         self.poles = sorted(poles, key=lambda pole: pole.weight)
         self.currentState = currentState
         self.desiredState = desiredState
@@ -21,6 +23,7 @@ class Actor():
 
         if self in allActors:
             self.otherActors = allActors.remove(self)
+        self.end_io_state = end_io_state
 
 
     @property
@@ -42,7 +45,6 @@ class Actor():
         def checkMoves(eventList):
             retList = []
             for event in eventList:
-                #TODO: fix up actor.error
                 if event.compare(event, currentEvent) < self.error and event.success < 0:
                     retList.append(event.move)
             return retList
@@ -76,14 +78,11 @@ class Actor():
     # make actor history and memory for IO - populate "history", memory is populated during
     def orientation(self):
         # alter all of the poles (possibly), remember to put back
-        # add honor pole
-        # TODO order the moves based on ideal move using k-means, keeping track of how far each move is from the centroid
+        # TODO order the moves based on ideal move using k-means, keeping track of how far each move is from the centroi
 
+        orderedMoves = IO.io(self.ioValues)
+        poles = sorted(self.poles, key= lambda pole: pole.weight)
 
-        orderedMoves = []
-        # TODO sort the poles in here
-        poles = self.poles
-        # ordered by distance from centroid.
         for pole in poles:
             orderedMoves = pole.actOnList(orderedMoves, self)
         return orderedMoves
@@ -100,7 +99,7 @@ class Actor():
         for move in moves:
             tempState = self.applyPossibleMove(move)
             for resource in tempState.resources:
-                if resource < -self.resourceError:
+                if resource < -self.resourcesError:
                     error = self.resourcesError * max([resource for resource in self.currentState.resources])
                     remove.add(move)
         moves = [i for i in moves if i not in remove]
@@ -129,7 +128,7 @@ class Actor():
             if self.howSuccessfulWasMove(event) < 0:
                 self.successfulMoves.append(event)
         self.successfulMoves = sorted(self.successfulMoves, key = lambda event: event.success)
-        # TODO
+
         #check if resources are critically low in the current state
         for i in range(0, len(self.currentState)):
             if self.currentState[i] < self.criticalState[i]:
@@ -137,12 +136,16 @@ class Actor():
 
         orderedMoves = self.orientation()
         cutResources = self.cutByResources(orderedMoves)
+
+        risk_calculation.assign_probabilities(orderedMoves)
+        risk_calculation.calculate_risks(self.end_io_state, orderedMoves)
+
         mst = MST(self.currentState, self.desiredState, cutResources, self.maxTime)
         mst = self.pH(mst)
         moves = mst.getMoves()
 
         for result in moves:
-            event = Event(self.currentState,self.desiredState, result)
+            event = Event(self.currentState,self.desiredState, result, None)
             event.timeTick = self.timeTicks
             self.addToMemory(result)
 
@@ -191,28 +194,5 @@ class Actor():
         self.desiredState.set(name, value)
         #do something else
 
-'''
-This class represents an event in an actor's history/memory. It records the state that the actor was in, and the move that was made from that state
-'''
-class Event:
-    def __init__(self, currentState, desiredState, move, success):
-        self.currentState = currentState
-        self.desiredState = desiredState
-        self.move = move
-        self.success = success
 
-    '''
-    Compute how different two events are based on the state. Equal states will have 0 difference, so compare will return 0.
-    '''
-    @staticmethod
-    def compare(event1, event2):
-        return Event.compareResources(event1.state.resources, event2.state.resources)
-
-    #TODO: make dictionary instead of list
-    @staticmethod
-    def compareResources(a, b):
-        difference = 0
-        for item in a.keys():
-            difference += abs(a.get(item) - b.get(item))
-        return difference
 
