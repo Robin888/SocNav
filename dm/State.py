@@ -1,4 +1,4 @@
-from utils import *
+from deprecated.utils import *
 
 class State:
     'Move class to express CAMEO moves in terms of Resources and Infrastructure'

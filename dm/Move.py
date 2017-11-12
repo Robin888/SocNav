@@ -1,37 +1,34 @@
 import numpy as np
-from State import State
+from dm.State import State
+from dm import risk_calculation
 
 class Move(State):
     def __init__(self, code, move_name, move_type, IO_list,
                  ph, low_resources, med_resources,
-                 high_resources, infrastructure):
-
-        self.probability = probability
-        sum = 0
-        for key, value in resources.items():
-            sum += value
-
-        self.sum = sum
-        self.risk = probability * abs(sum)
+                 high_resources, infrastructure, category):
+        super().__init__(self.resources, infrastructure)
         self.category = category
-
         self.code = code
         self.move_name = move_name
         self.move_type = move_type
         self.IO = IO_list
         self.ph = ph
-        self.resources = {"low": low_resources,
-        "med": med_resources,
-        "high": high_resources}
+        self.resourcesCategories = {"low": low_resources,
+                                    "med": med_resources,
+                                    "high": high_resources}
 
         self.infrastructure = infrastructure
         self.probability = -1  # unassigned
         self.risk = -1  # unassigned
-        self.one_hot = []  # a one hot vector representation of teh resources
+        self.one_hot = risk_calculation.resource_encoding(self.resourcesCategories)  # a one hot vector representation of teh resources
+        self.sum = 0
+        for value in self.one_hot:
+            self.sum += value
 
     '''
     given by monte carlo - gets the state resulting from this move being made by sampling a distribution
     '''
+
     def getPossibleState(self, curState):
         # TODO: DO THIS
         resources = {}
