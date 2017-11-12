@@ -26,9 +26,6 @@ class MST:
         if currentTime < self.maxTime-1:
             #change this to self.graph.neighbors(parentNode)
             adjacency = self.graph[parentNode]
-            print(adjacency)
-            print(list([str(x) for x in adjacency]))
-            print(currentTime)
             for k in list(adjacency):
                 self.generateTree(k, currentTime=currentTime + 1)
 
@@ -76,3 +73,10 @@ class MST:
     '''
     def getMoves(self):
         return self.possibleMoves
+
+    def containsMove(self, move):
+        #checks if move is in neighbors
+        edges =[self.graph[self.currentState][childNode]['object'] for childNode in self.graph.neighbors(self.currentState)]
+        return(move in edges)
+
+

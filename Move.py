@@ -22,6 +22,7 @@ class Move(State):
             resources[i] = curState.resources[i] - self.resources[i]
 
         infrastructure = {}
+
         for i in curState.infrastructure:
             infrastructure[i] = curState.infrastructure[i] - self.infrastructure[i]
         return State(resources, infrastructure)

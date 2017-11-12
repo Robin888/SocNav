@@ -21,7 +21,7 @@ class testMST(unittest.TestCase):
         move0 = Move({"f1": 0, "f2": 0, "f3": 0}, {'i1:':0, 'i2': 0, 'i3':0}, [], 0, None)
         moves = [move1, move2,move0]
         test_mst1 = MST(curstate1, desState1, moves,2)
-        print(len(test_mst1.getMoves()))
+
         G= test_mst1.graph
         #nx.draw(test_mst1.graph)
         #plt.show()
@@ -46,6 +46,8 @@ class testMST(unittest.TestCase):
         edges = [G[test_mst1.currentState][childNode]['object'] for childNode in test_mst1.graph.neighbors(test_mst1.currentState)]
 
         self.assertTrue(move0 in edges)
+        self.assertTrue(test_mst1.containsMove(move0))
+
         test_mst1.removeMove(move0)
         G1 = test_mst1.graph
         #edges = G1.edges()
@@ -53,6 +55,7 @@ class testMST(unittest.TestCase):
         edges = [G1[test_mst1.currentState][childNode]['object'] for childNode in test_mst1.graph.neighbors(test_mst1.currentState)]
 
         self.assertFalse(move0 in edges)
+        self.assertFalse(test_mst1.containsMove(move0))
 
 
 

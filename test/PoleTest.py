@@ -115,12 +115,12 @@ class TestStringMethods(unittest.TestCase):
         moves = []
         history = [event1, event2, event3, event4]
         memory = [event5, event6, event7, event8]
-        actorlow.history = history
-        actorhigh.history = history
-        actormiddle.history = history
-        actorlow.memory=memory
-        actormiddle.memory = memory
-        actorhigh.memory = memory
+        actorlow.history = [event1, event2, event3, event4]
+        actorhigh.history = [event1, event2, event3, event4]
+        actormiddle.history = [event1, event2, event3, event4]
+        actorlow.memory=[event5, event6, event7, event8]
+        actormiddle.memory = [event5, event6, event7, event8]
+        actorhigh.memory = [event5, event6, event7, event8]
 
         print("MOVES LOW")
         moveslow = test_polelow.actOnList(moves, actorlow)
@@ -187,7 +187,7 @@ class TestStringMethods(unittest.TestCase):
         move1= Event(None, None, Move({"t1":0}, None, [], .5,'Engage in diplomatic cooperation'), 0)
 
         move2 =Event(None, None, Move({"t1":0}, None, [], .5, 'Engage in in material cooperation'), 0)
-        move3 = Event(None, None, Move({"t1":0}, None, [], .5, 'Appeal'), 0)
+        move3 = Event(None, None, Move({"t1":0}, None, [], .5, 'Appeal'), 0)#.4-.6
         move4 = Event(None,None, Move({"t1":0}, None, [], .5, 'Build economic infrastructure'),0)
         move5 = Event(None,None, Move({"t1":0}, None, [], .5, 'Build energy infrastructure'),0)
         move6 = Event(None, None, Move({"t1":0},  None,[], .5, 'Build military infrastructure'), 0)
