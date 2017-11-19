@@ -24,6 +24,7 @@ class Move(State):
         self.one_hot = risk_calculation.resource_encoding(
             self.resourcesCategories)  # a one hot vector representation of teh resources
         self.sum = 0
+        self.resources = self.one_hot
         for value in self.one_hot:
             self.sum += value
 

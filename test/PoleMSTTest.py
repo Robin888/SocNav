@@ -1,9 +1,10 @@
 import unittest
 
-from dm.Actor import Actor
+from dm.Actor import Actor, Event
 from dm.Move import Move
 from dm.Pole import *
 from dm.State import State
+from dm.MST import MST
 
 
 class TestPoleMST(unittest.TestCase):

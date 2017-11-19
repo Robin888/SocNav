@@ -3,7 +3,7 @@ import numpy as np
 from dm.CogSciK import CogSciK
 
 def io(initial_io):
-    data = u.read_moves("data/moves.csv")
+    data = u.read_moves("../data/moves.csv")
     move_map = u.map_moves(data)
     X = u.build_training_set(move_map)
 

@@ -130,9 +130,9 @@ class Actor():
         self.successfulMoves = sorted(self.successfulMoves, key=lambda event: event.success)
 
         # check if resources are critically low in the current state
-        for i in range(0, len(self.currentState)):
-            if self.currentState[i] < self.criticalState[i]:
-                self.trigger(self.criticalState[i].name, self.criticalState[i].value)
+        for resource in self.currentState.resources:
+            if self.currentState.resources[resource] < self.criticalState.resources[resource]:
+                self.trigger(resource, self.criticalState.resources[resource])
 
         orderedMoves = self.orientation()
         cutResources = self.cutByResources(orderedMoves)
@@ -169,7 +169,6 @@ class Actor():
 
     def pH(self, mst):
         poles = self.poles
-        # sort poles based on weight
         for pole in poles:
             if self.polesAct == 0:
                 break
@@ -179,10 +178,11 @@ class Actor():
         return mst
 
     '''
-    trigger a move based on critically low values. temporarily set the desired state to one that will fix the currently lacking resource. Maybe we can make a stack of states that an actor needs to achieve
+    trigger a move based on critically low values. temporarily set the desired state to one that will fix the currently lacking resource.
+    Maybe we can make a stack of states that an actor needs to achieve
     '''
 
     # TODO: remember to reset it after! Python question
     def trigger(self, name, value):
-        self.desiredState.set(name, value)
+        self.desiredState[name] = value
         # do something else
