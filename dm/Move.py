@@ -7,7 +7,6 @@ class Move(State):
     def __init__(self, code, move_name, move_type, IO_list,
                  ph, low_resources, med_resources,
                  high_resources, infrastructure, category):
-        super().__init__(self.resources, infrastructure)
         self.category = category
         self.code = code
         self.move_name = move_name
@@ -27,6 +26,8 @@ class Move(State):
         self.resources = self.one_hot
         for value in self.one_hot:
             self.sum += value
+
+        super().__init__(self.resources, infrastructure)
 
     def getPossibleState(self, curState):
         resources = {}
