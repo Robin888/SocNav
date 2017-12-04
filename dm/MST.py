@@ -24,6 +24,7 @@ class MST:
                 # possibleState.setTime(currentTime)
                 self.graph.add_node(possibleState)
                 self.graph.add_edge(parentNode, possibleState, object=move)
+
         if currentTime < self.maxTime - 1:
             # change this to self.graph.neighbors(parentNode)
             adjacency = self.graph[parentNode]

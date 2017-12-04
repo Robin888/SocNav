@@ -6,18 +6,15 @@ import numpy as np
 # the Move object has been modified to include a risk and probability
 
 def assign_probabilities(moves):
-    n = len(moves)
-    mu = 1 / n
-    sigma = np.random.uniform()
-    samples = np.random.normal(mu, sigma, n)
-    for i in range(n):
-        moves[i].probability = samples[i]
+    for i in range(len(moves)):
+        moves[i].probability = np.random.uniform()
 
 
 def calculate_risks(end_state, moves):
     distances = []
     for move in moves:
-        distance = euclidean_distance(end_state, move.IO)
+        distance = euclidean_distance([end_state["A"], end_state["B"], end_state["C"], end_state["D"], end_state["E"]],
+                                      move.IO)
         random_error = np.random.normal(0, 1)
         distance_errored = distance + random_error
         distances.append(distance_errored)
@@ -33,9 +30,10 @@ def resource_encoding(resourcesCategories):
     n = len(resource_vocab)
 
     for i in range(n):
-        vocab_map_indices[resource_vocab[i]] = i
+        vocab_map_indices[resource_vocab[i].replace("\n", "")] = i
 
     one_hot = [0] * n
+
     for resource in resourcesCategories["low"]:
         one_hot[vocab_map_indices[resource]] = 1
     for resource in resourcesCategories["med"]:
@@ -55,9 +53,10 @@ def generate_resource_vocab(moves):
             resource_vocab.add(resource)
         for resource in move.resourcesCategories["high"]:
             resource_vocab.add(resource)
+
     f = open("resource_vocab.txt", "w")
     for resource in resource_vocab:
-        f.write(resource)
+        f.write(resource + "\n")
     f.close()
 
 

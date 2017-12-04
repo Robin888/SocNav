@@ -60,9 +60,9 @@ def map_moves(moves):
                                    move["move_type"],
                                    IO_list,
                                    move["ph"],
-                                   move["low_resources"],
-                                   move["med_resources"],
-                                   move["high_resources"],
+                                   [resource.strip() for resource in move["low_resources"].replace(",", " ").split()],
+                                   [resource.strip() for resource in move["med_resources"].replace(",", " ").split()],
+                                   [resource.strip() for resource in move["high_resources"].replace(",", " ").split()],
                                    move["infrastructure"],
                                    category='Build political infrastructure')
     return move_map

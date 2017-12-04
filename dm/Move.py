@@ -1,6 +1,6 @@
 import numpy as np
+
 from dm.State import State
-from dm import risk_calculation
 
 
 class Move(State):
@@ -12,6 +12,7 @@ class Move(State):
         self.move_name = move_name
         self.move_type = move_type
         self.IO = IO_list
+        self.ioValues = self.IO
         self.ph = ph
         self.resourcesCategories = {"low": low_resources,
                                     "med": med_resources,
@@ -20,8 +21,7 @@ class Move(State):
         self.infrastructure = infrastructure
         self.probability = -1  # unassigned
         self.risk = -1  # unassigned
-        self.one_hot = risk_calculation.resource_encoding(
-            self.resourcesCategories)  # a one hot vector representation of teh resources
+        self._one_hot = []
         self.sum = 0
         self.resources = self.one_hot
         for value in self.one_hot:
@@ -29,15 +29,31 @@ class Move(State):
 
         super().__init__(self.resources, infrastructure)
 
+    @property
+    def one_hot(self):
+        return self._one_hot
+
+    @one_hot.setter
+    def one_hot(self, val):
+        self._one_hot = val
+        self.resources = val
+
+    def __str__(self):
+        return self.move_name
+
+    __repr__ = __str__
+
     def getPossibleState(self, curState):
         resources = {}
         for i in curState.resources:
             resources[i] = curState.resources[i] - self.resources[i]
 
         infrastructure = {}
-
+        # TODO turn this on once infrastructure is fixed
+        '''
         for i in curState.infrastructure:
             infrastructure[i] = curState.infrastructure[i] - self.infrastructure[i]
+            '''
         return State(resources, infrastructure)
 
     def compare(self, other):

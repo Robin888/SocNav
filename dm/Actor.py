@@ -1,7 +1,7 @@
-from dm.MST import MST
 from dm import IO
 from dm import risk_calculation
 from dm.Event import Event
+from dm.MST import MST
 
 
 class Actor():
@@ -81,7 +81,6 @@ class Actor():
     def orientation(self):
         orderedMoves = IO.io(self.ioValues)
         poles = sorted(self.poles, key=lambda pole: pole.weight)
-
         for pole in poles:
             orderedMoves = pole.actOnList(orderedMoves, self)
         return orderedMoves
@@ -135,6 +134,10 @@ class Actor():
                 self.trigger(resource, self.criticalState.resources[resource])
 
         orderedMoves = self.orientation()
+
+        for move in orderedMoves:
+            move.one_hot = risk_calculation.resource_encoding(move.resourcesCategories)
+
         cutResources = self.cutByResources(orderedMoves)
 
         risk_calculation.assign_probabilities(orderedMoves)
@@ -159,6 +162,7 @@ class Actor():
 
     def applyPossibleMove(self, move):
         state = self.currentState
+
         for i in range(0, len(move.resources)):
             state.resources[i] += move.resources[i]
         return state
@@ -172,6 +176,7 @@ class Actor():
         for pole in poles:
             if self.polesAct == 0:
                 break
+
             self.polesLeft = poles[poles.index(pole):]
             mst = pole.actOnMST(mst, self)
             self.polesAct -= 1
