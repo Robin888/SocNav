@@ -1,5 +1,6 @@
 from deprecated.utils import *
 
+
 class State:
     'Move class to express CAMEO moves in terms of Resources and Infrastructure'
     """
@@ -11,14 +12,16 @@ class State:
     def __init__(self, resources, infrastructure):
         self.resources = resources
         self.infrastructure = infrastructure
+
     def __str__(self):
         return (str(self.resources) + " " + str(self.infrastructure))
+
     """
     Reads in the values of each resource measure and adds it to the resource dictionary
     """
 
     def parseMeasures(self, filename):
-        print ("WILL UPDATE ONCE I GET THE CSV FORMAT FROM THE SMRs")
+        print("WILL UPDATE ONCE I GET THE CSV FORMAT FROM THE SMRs")
 
     """
     Used to get the measure of the resource or infrastructure from the respective dictionary

@@ -48,9 +48,7 @@ class RationalityPole(Pole):
         movelist = moves[:]
         val = (self.value + 1) / 2.0 - actor.error
         for move in movelist:
-
             if move.probability < ((self.value + 1) / 2.0 - actor.error):
-                print("removing move")
                 # remove the moves that have a probability of ending up in the desired state lower than the actor's rationality + an error term
                 # im assuming that the probability of ending up in the desired state is the value of tbe move  and the value of the pole is the actors rationality
                 # make sure move and probability are on similar scales
@@ -79,7 +77,7 @@ class RiskPole(Pole):
         temp = max([v for k, v in actor.currentState.resources.items()])
         for move in moves:
             if move.risk > (((
-                                 self.value + 1) / 2.0) + actor.error) * temp:  # remove all moves that have a higher risk than the value of the pole + an error term with mst.removeMove(move)
+                                         self.value + 1) / 2.0) + actor.error) * temp:  # remove all moves that have a higher risk than the value of the pole + an error term with mst.removeMove(move)
 
                 # risk and probability and error are on similar scales
                 # error decreases risk
@@ -95,15 +93,17 @@ class ParticularHolisticPole(Pole):
     def actOnList(self, orderedList, actor):
         # holistic vs particular: holistic actor considers moves further from centroid.
         # work with list of orderedMoves from k-means
-        orderedMoves = orderedList
+        orderedMoves = sorted(orderedList, key=lambda move: abs(
+            np.linalg.norm(np.subtract(move.ioValues, list(actor.ioValues.values())))))
         # obtain greatest possible distance from centroid
-        maxdistance = abs(np.linalg.norm(np.subtract(orderedMoves[-1].ioValues, actor.ioValues)))
+        maxdistance = abs(np.linalg.norm(np.subtract(orderedMoves[-1].ioValues, list(actor.ioValues.values()))))
+
         # scale the value of the particular/holistic pole by that amount.
         tempval = maxdistance * ((self.value + 1) / 2.0 + actor.error)
         # return moves that are a distance less than or equal to the scaled pole value + an error term from the orderedMoves list
 
         orderedMoves = [move for move in orderedMoves if
-                        abs(np.linalg.norm(np.subtract(move.ioValues, actor.ioValues))) <= (tempval)]
+                        abs(np.linalg.norm(np.subtract(move.ioValues, list(actor.ioValues.values())))) <= (tempval)]
         # what is error value
         return orderedMoves
 
@@ -155,7 +155,6 @@ class PrimacyRecencyPole(Pole):
             important = actor.history
             other = actor.memory
         value = int(abs(self.value) * min(len(actor.history), len(actor.memory))) if self.value is not 0 else 1
-        print("value: ", value)
         otherCount = 0
         for importantCount in range(1, len(important) + 1):
 
@@ -163,8 +162,7 @@ class PrimacyRecencyPole(Pole):
             if importantCount % value == 0:
                 self.removefromTree(other[otherCount], mst, actor)
                 otherCount += 1
-                # print("ADDIITON:")
-                # print([move.resources for move in addition])
+
         return mst
 
     def removefromTree(self, element, mst, actor):
@@ -209,8 +207,7 @@ class PrimacyRecencyPole(Pole):
             if importantCount % value == 0:
                 self.addToSet(other[0], addition, actor)
                 otherCount += 1
-                # print("ADDIITON:")
-                # print([move.resources for move in addition])
+
         updatedMoves = orderedList
         updatedMoves += (list(addition))
         return updatedMoves
@@ -252,17 +249,25 @@ class RoutineCreativePole(Pole):
         orderedMoves += [event.move for event in oldMoves]
         # only want to remove if you are routine, need to scale based on pole values
         addition = set()
+
+        if len(actor.successfulMoves) <= 10:
+            return orderedMoves
+
         for move in orderedMoves:
             # find the most similar move in actor.successful moves
             # if that move is still not similar enough, then remove it
             # similar enough = same way we did up there
+
             for event in actor.successfulMoves:
                 sim = Event.compareResources(move.resources, event.move.resources)
                 error = actor.error * max([v for k, v in actor.currentState.resources.items()])
                 rnum = random.random()
                 if sim < error and rnum <= (self.value + 1) / 2:
                     addition.add(move)
+                    break
+
         updatedMoves = list(addition)
+
         return updatedMoves
 
 
@@ -315,11 +320,13 @@ class EmotionalPole(Pole):
         lowerBound = max(poleVal - err, -1)
         moves = mst.getMoves()
         moves = moves[:]
-        for move in moves:
 
-            if not (np.mean(self.moveCategories.get(move.category)) > lowerBound and np.mean(
-                    self.moveCategories.get(move.category)) < upperBound):
-                mst.removeMove(move)
+        if lowerBound != upperBound:
+            for move in moves:
+
+                if not (np.mean(self.moveCategories.get(move.category)) > lowerBound and np.mean(
+                        self.moveCategories.get(move.category)) < upperBound):
+                    mst.removeMove(move)
 
         return mst
 
