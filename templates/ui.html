@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Decision Making</title>
+</head>
+<body>
+<form action="{{url_for('post_index')}}" method=post>
+    Poles: <br>
+    {% for pole in poles%}
+    {{pole}} Value
+    <input type="range" min="-100" max="100" value="0" id="{{pole}}_val" name="{{pole}}_val"> <br>
+    {{ pole }} Weight
+    <input type="range" min="-100" max="100" value="0" id="{{pole}}_weight" name="{{pole}}_weight"> <br>
+    <br>
+    {% endfor %}
+
+    Current State Resources (separated by commas and spaces):
+    <input type="text" id="cur_resources" name="cur_resources"> <br>
+
+    Current State Infrastructure (separated by commas and spaces):
+    <input type="text" id="cur_infra" name="cur_infra"> <br>
+
+    Desired State Resources (separated by commas and spaces):
+    <input type="text" id="des_resources" name="des_resources"> <br>
+
+    Current State Infrastructure (separated by commas and spaces):
+    <input type="text" id="des_infra" name="des_infra"> <br>
+
+    Desired State Resources (separated by commas and spaces):
+    <input type="text" id="critical_resources" name="critical_resources"> <br>
+
+    Current State Infrastructure (separated by commas and spaces):
+    <input type="text" id="critical_infra" name="critical_infra"> <br>
+
+    Max Time:
+    <input type="number" id="max_time" name="max_time"><br>
+
+    Error:
+    <input type="number" id="error" name="error"><br>
+
+    IO values:<br>
+    {% for val in io_values %}
+    {{val}} Value
+    <input type="range" min="-100" max="100" value="0" id="{{val}_value" name="{{val}}_value"> <br>
+
+    Desired {{val}} value:
+    <input type="range" min="-100" max="100" value="0" id="{{val}}_value_end" name="{{val}}_value_end"> <br>
+    {% endfor %}
+
+
+    <input type="submit" value="Submit">
+</form>
+</body>
+</html>

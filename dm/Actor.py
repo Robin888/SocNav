@@ -112,7 +112,13 @@ class Actor():
     '''
 
     def howSuccessfulWasMove(self, event):
-        return (self.currentState - self.desiredState) - (event.currentState - event.desiredState)
+        current_values = [self.currentState.resources[x] for x in self.currentState.resources]
+        desired_values = [self.desiredState.resources[x] for x in self.desiredState.resources]
+        event_values = [event.currentState.resources[x] for x in event.currentState.resources]
+        t1 = [i - j for i, j in zip(current_values, desired_values)]
+        t2 = [i - j for i, j in zip(event_values, desired_values)]
+        t3 = [i - j for i, j in zip(t1, t2)]
+        return sum(t3)
 
     '''
     chooses the move to be made by this actor

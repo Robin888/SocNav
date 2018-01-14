@@ -57,4 +57,5 @@ actor = Actor([rationality, risk, emotion, generosity, particularHolistic, prima
               desState, maxTime=2, error=0, history=[], criticalState=criticalState, allActors=[], ioValues=io_values,
               end_io_state=io_values)
 
-actor.makeDecision()
+for i in range(0, 10):
+    actor.makeDecision()
