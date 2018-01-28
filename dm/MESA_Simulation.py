@@ -218,10 +218,57 @@ class Simulator(Model):
             data_collector.append(temp_state)
             moves_made.append(temp_move)
         return data_collector,moves_made
+    
+    def watcher(self,times,agent_alert=[],resources_alert={},moves_alert=[]):#three conditions in total
+        initial_state={}
+        for a in empty_model.schedule.agents:
+            initial_state[a.unique_id]=a.currentState.resources.copy()
+        data_collector=[]
+        data_collector.append(initial_state)
+        moves_made=[]
+        for i in range(times):
+            self.step()
+            temp_state={}
+            temp_move={}
+            
+            for a in empty_model.schedule.agents:
+                temp_state[a.unique_id]=a.currentState.resources.copy()
+                temp_move[a.unique_id]=a.moves_made
+                
+                #one condition
+                if a.unique_id in agent_alert and len(resources_alert)==0 and len(moves_alert)==0:
+                    print('the moves that actor',a.unique_id,'made at step',i+1, 'is', a.moves_made)
+                    print('the resources of actor',a.unique_id,'made at step',i+1, 'is', a.currentState.resources)
+                if  len(moves_alert)!=0 and len(agent_alert)==0 and len(resources_alert)==0:
+                    for m in moves_alert:
+                        if m in [str(e) for e in a.moves_made]:
+                            print('actor',a.unique_id,'made the move',m,'at step',i+1)   
+                if len(resources_alert)!=0 and len(agent_alert)==0 and len(moves_alert)==0:
+                    for r in resources_alert.keys():
+                        if a.currentState.resources[r]==resources_alert[r]:
+                            print('the resources',r,'of actor',a.unique_id,'reach',resources_alert[r],'at step', i+1)
+                
+                #two conditions
+                if a.unique_id in agent_alert and len(resources_alert)!=0:
+                    for r in resources_alert.keys():
+                        if a.currentState.resources[r]==resources_alert[r]:
+                            print('the resources',r,'of actor',a.unique_id,'reach',resources_alert[r],'at step', i+1)
+                if  len(moves_alert)!=0 and a.unique_id in agent_alert:
+                    for m in moves_alert:
+                        if m in [str(e) for e in a.moves_made]:
+                             print('actor',a.unique_id,'made the move',m,'at step',i+1) 
+                
+            data_collector.append(temp_state)
+            moves_made.append(temp_move)
+        print('simulation done!')    
+        return data_collector,moves_made
+        
+        
             
             
         
 
 
 empty_model = Simulator(N=1)
-data, moves=empty_model.multi_step_collector(20)
+#data, moves=empty_model.multi_step_collector(20)
+data, moves=empty_model.watcher(100,agent_alert=[1],resources_alert={5:31},moves_alert=['Threaten'])
